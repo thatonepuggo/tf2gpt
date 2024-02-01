@@ -40,7 +40,7 @@ this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remem
 ---end of your chat history---
 ---beginning of current chat message---
 {author}: {question}
-You: """
+You: <your message here>"""
 
     chat_memory.append(f"{author}: {question}")
     print(gen_prompt)
@@ -57,16 +57,11 @@ You: """
             "min_new_tokens": -1
         },
     )
-
-    for event in message:
-        pass
-        #print(f"{ctx.message.author} asked: {question}")
-        #print("output: " + str(event), end="")
-
-    #embed=discord.Embed(title="Message", description=''.join(message), color=0x8300b3)
-    #await ctx.send(embed=embed)
-    chat_memory.append(f"You: {''.join(message)}")
-    return ''.join(message)
+    full = ''.join(message)
+    if full.lower().startswith("you: "):
+        full = full[5:]
+    chat_memory.append(f"You: {full}")
+    return full
 
 def chunkstring(string, length):
     return (string[0+i:length+i] for i in range(0, len(string), length))
@@ -86,7 +81,9 @@ with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
                 
                 if message.lower().startswith(f"{PREFIX}ask"):
                     print("processing...")
-                    for chunk in chunkstring(ask(username, message), 128):
+                    response = ask(username, message)
+                    print({response})
+                    for chunk in chunkstring(response, 128):
                         client.run('say', chunk)
                         sleep(1)
         sleep(5)
