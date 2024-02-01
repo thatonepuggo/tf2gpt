@@ -53,7 +53,7 @@ You: <your message here>"""
             "prompt": question,
             "temperature": 0.5,
             "system_prompt": gen_prompt,
-            "max_new_tokens": 500,
+            "max_new_tokens": 128,
             "min_new_tokens": -1
         },
     )
@@ -65,6 +65,9 @@ You: <your message here>"""
 
 def chunkstring(string, length):
     return (string[0+i:length+i] for i in range(0, len(string), length))
+
+def is_command(message, cmd):
+    return message.lower().startswith(f"{PREFIX}{cmd}")
 
 with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
     conlog = ConLog(game_root=GAMEROOT, mod_root=MODROOT)
@@ -78,12 +81,22 @@ with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
             if username_match and message_match:
                 username = username_match.group()
                 message = message_match.group().lstrip()
-                
-                if message.lower().startswith(f"{PREFIX}ask"):
+                args = message.split(' ')
+                if is_command(message, "ask"):
                     print("processing...")
                     response = ask(username, message)
                     print(response)
-                    for chunk in chunkstring(response, 128):
+                    for chunk in chunkstring(response, 127):
                         client.run('say', chunk)
                         sleep(1)
-        sleep(5)
+                elif is_command(message, "backstory"):
+                    print(len(args))
+                    print(args)
+                    if len(args) < 1:
+                        print("ignored command. too few args")
+                        continue
+                    backstory = ' '.join(args[1:])
+                    client.run('say', f"[tf2gpt] set backstory to '{backstory}'")
+                    if args[1] == "default":
+                        backstory = PROMPT
+        sleep(1) # EDIT THIS IF YOU DONT WANT A FILE READ EVERY SECOND
