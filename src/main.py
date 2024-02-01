@@ -82,7 +82,7 @@ with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
                 if message.lower().startswith(f"{PREFIX}ask"):
                     print("processing...")
                     response = ask(username, message)
-                    print({response})
+                    print(response)
                     for chunk in chunkstring(response, 128):
                         client.run('say', chunk)
                         sleep(1)
