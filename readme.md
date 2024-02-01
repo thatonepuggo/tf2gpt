@@ -2,6 +2,7 @@
 lets people in source games run ";ask" to ask an ai a question.
 
 # how to run
+you need the python packages rcon and python-dotenv but i forgot to add a requirements.txt
 
 first off, add these lines to your `tf/cfg/autoexec.cfg`:
 ```cfg
