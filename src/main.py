@@ -77,7 +77,6 @@ with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
         new = conlog.readnewlines()
         
         for line in new:
-            print(line)
             username_match = re_username.search(line)
             message_match = re_message.search(line)
             if username_match and message_match:
@@ -86,9 +85,7 @@ with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
                 
                 if message.lower().startswith(f"{PREFIX}ask"):
                     print("processing...")
-                    response = chunkstring(ask(username, message), 128)
-                    print(response)
-                    for chunk in response:
+                    for chunk in chunkstring(ask(username, message), 128):
                         client.run('say', chunk)
                         sleep(1)
         sleep(5)
