@@ -21,7 +21,7 @@ class ConLog:
         self.read()
     
     def open(self):
-        return open(f"{self.game_root}/{self.mod_root}/{self.con_logfile}")
+        return open(f"{self.game_root}/{self.mod_root}/{self.con_logfile}", encoding="utf_8")
     
     def read(self):
         with self.open() as log:
