@@ -1,9 +1,14 @@
 from time import sleep
 import re
+import threading
+import base64
+import os
 
 from dotenv import load_dotenv
 from rcon.source import Client
 import replicate
+from pygame import mixer
+from pygame import _sdl2 as device
 
 from conlog import ConLog
 
@@ -23,6 +28,9 @@ PROMPT = "You are Jason Grant, the deathmatch mercenary from Open Fortress, an o
 "Your best friend is the Civilian, a rich and portly British oil baron. Your girlfriend is Vivian, a fat secretary. You have a pet albino rat named Chuck." \
 "A friend from long ago, Merv, is the one who introduced you to the world of deathmatch. " \
 "He taught you most of what you know now, how to protect yourself in a fight, as well as your one-liners. "
+
+VBCABLE = "CABLE Input (VB-Audio Virtual Cable)" 
+CACHED_SND="cached_snd.mp3"
 
 backstory = PROMPT
 
@@ -66,22 +74,57 @@ You: <your message here>"""
 def chunkstring(string, length):
     return (string[0+i:length+i] for i in range(0, len(string), length))
 
+mixer.init(devicename = VBCABLE)
+
+vb_support = True
+if not VBCABLE in device.audio.get_audio_device_names(False):
+    print("To use voice-related AI commands, please get Virtual Audio Cable: https://vb-audio.com/Cable/.")
+    vb_support = False
+else:
+    print("Virtual Audio Cable found. vb commands enabled!")
+
+
 def is_command(message, cmd):
     return message.lower().startswith(f"{PREFIX}{cmd}")
 
-with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
-    conlog = ConLog(game_root=GAMEROOT, mod_root=MODROOT)
+def vb_command(message, cmd):
+    return vb_support and is_command(message, cmd)
     
+    
+def vctest(client: Client):
+    message = replicate.run("afiaka87/tortoise-tts:e9658de4b325863c4fcdc12d94bb7c9b54cbfe351b7ca1b36860008172b91c71",
+                  input={
+                      "text": args[1:],
+                      "custom_voice": f"merc_training.mp3"
+                  })
+    with open(CACHED_SND, "xb") as snd:
+        snd.write(message)
+    client.run('+voicerecord')
+    mixer.music.load(CACHED_SND)
+    mixer.music.play()
+    while mixer.music.get_busy():
+        pass
+    client.run('-voicerecord')
+    os.remove(CACHED_SND)
+    
+
+with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
+    global username
+    global message
+    global args
+    conlog = ConLog(game_root=GAMEROOT, mod_root=MODROOT)
     while True:
         new = conlog.readnewlines()
         
         for line in new:
             username_match = re_username.search(line)
             message_match = re_message.search(line)
+            
             if username_match and message_match:
                 username = username_match.group()
                 message = message_match.group().lstrip()
                 args = message.split(' ')
+                
                 if is_command(message, "ask"):
                     print("processing...")
                     response = ask(username, message)
@@ -89,6 +132,7 @@ with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
                     for chunk in chunkstring(response, 127):
                         client.run('say', chunk)
                         sleep(1)
+                        
                 elif is_command(message, "backstory"):
                     print(len(args))
                     print(args)
@@ -99,4 +143,10 @@ with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
                     client.run('say', f"[tf2gpt] set backstory to '{backstory}'")
                     if args[1] == "default":
                         backstory = PROMPT
+                        
+                elif vb_command(message, "vctest"):
+                    
+                    t_vctest = threading.Thread(target=vctest, args=[client])
+                    t_vctest.run()
+                    
         sleep(1) # EDIT THIS IF YOU DONT WANT A FILE READ EVERY SECOND
