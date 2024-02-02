@@ -26,7 +26,7 @@ rename .env_example to .env
 in main.py, you can edit the prompt to your liking or you can leave it the same as it is.
 
 # thanks to
-- nickplj12 (for mercenary discord bot, which this is sorta based off of)
+- nickplj12 (for mercenary discord bot, which this is sorta based off of) aka nickplj12 on discord
 - Meta (for llama)
 - AlphaBlaster
-- dotheboogey678
+- dotheboogey678 aka vargskelethor_joel on discord
