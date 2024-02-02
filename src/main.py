@@ -90,21 +90,26 @@ def is_command(message, cmd):
 def vb_command(message, cmd):
     return vb_support and is_command(message, cmd)
     
-    
-def ttsask(client: Client):
-    tts = gTTS(text=ask(username, ' '.join(args[1:])), lang='en', slow=False)
-    try:
-        os.remove(CACHED_SND)
-    except:
-        print("file does not exist")
+def tts(client: Client, text):
+    tts = gTTS(text=text, lang='en', slow=False)
+    os.remove(CACHED_SND)
     tts.save(CACHED_SND)
     
     client.run('+voicerecord')
     mixer.music.load(CACHED_SND)
+    sleep(0.1)
     mixer.music.play()
     while mixer.music.get_busy():
         pass
+    mixer.quit()
+    mixer.init(devicename = VBCABLE)
     client.run('-voicerecord')
+
+def ttsask(client: Client):
+    tts(client, ask(username, ' '.join(args[1:])))
+    
+def ttssay(client: Client):
+    tts(client, ' '.join(args[1:]))
 
 with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
     global username
@@ -143,7 +148,12 @@ with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
                         backstory = PROMPT
                         
                 elif vb_command(message, "ttsask"):
-                    t_vctest = threading.Thread(target=ttsask, args=[client])
-                    t_vctest.run()
+                    t_ttsask = threading.Thread(target=ttsask, args=[client])
+                    t_ttsask.run()
+                
+                elif vb_command(message, "ttssay"):
+                    t_ttssay = threading.Thread(target=ttssay, args=[client])
+                    t_ttssay.run()
+                
                     
         sleep(1) # EDIT THIS IF YOU DONT WANT A FILE READ EVERY SECOND
