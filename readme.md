@@ -25,6 +25,8 @@ rename .env_example to .env
 
 in main.py, you can edit the prompt to your liking or you can leave it the same as it is.
 
+(OPTIONAL) get virtual audio cable: https://vb-audio.com/Cable/. this will let you use tts response message with the ;ttsask command.
+
 # thanks to
 - nickplj12 (for mercenary discord bot, which this is sorta based off of) aka nickplj12 on discord
 - Meta (for llama)
