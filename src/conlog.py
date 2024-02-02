@@ -1,7 +1,7 @@
 class ConLog:
     """
     con_logfile: the value of the con_logfile convar.
-    game_root: root of the game (e.x. team fortress 2 = C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2)
+    game_root: root of the game (e.x. team fortress 2 = C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2)
     mod_root: name of the mod (e.x. team fortress 2 = tf)
     """
     con_logfile: str
@@ -11,7 +11,7 @@ class ConLog:
     
     def __init__(self,
                  con_logfile: str = "console.log", 
-                 game_root: str = "C:\Program Files (x86)\Steam\steamapps\common\Team Fortress 2", 
+                 game_root: str = "C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2", 
                  mod_root: str = "tf"):
         self.con_logfile = con_logfile
         self.game_root = game_root

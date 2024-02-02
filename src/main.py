@@ -1,8 +1,8 @@
 from time import sleep
 import re
 import threading
-import base64
 import os
+from gtts import gTTS
 
 from dotenv import load_dotenv
 from rcon.source import Client
@@ -91,22 +91,20 @@ def vb_command(message, cmd):
     return vb_support and is_command(message, cmd)
     
     
-def vctest(client: Client):
-    message = replicate.run("afiaka87/tortoise-tts:e9658de4b325863c4fcdc12d94bb7c9b54cbfe351b7ca1b36860008172b91c71",
-                  input={
-                      "text": args[1:],
-                      "custom_voice": f"merc_training.mp3"
-                  })
-    with open(CACHED_SND, "xb") as snd:
-        snd.write(message)
+def ttsask(client: Client):
+    tts = gTTS(text=ask(username, ' '.join(args[1:])), lang='en', slow=False)
+    try:
+        os.remove(CACHED_SND)
+    except:
+        print("file does not exist")
+    tts.save(CACHED_SND)
+    
     client.run('+voicerecord')
     mixer.music.load(CACHED_SND)
     mixer.music.play()
     while mixer.music.get_busy():
         pass
     client.run('-voicerecord')
-    os.remove(CACHED_SND)
-    
 
 with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
     global username
@@ -144,9 +142,8 @@ with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
                     if args[1] == "default":
                         backstory = PROMPT
                         
-                elif vb_command(message, "vctest"):
-                    
-                    t_vctest = threading.Thread(target=vctest, args=[client])
+                elif vb_command(message, "ttsask"):
+                    t_vctest = threading.Thread(target=ttsask, args=[client])
                     t_vctest.run()
                     
         sleep(1) # EDIT THIS IF YOU DONT WANT A FILE READ EVERY SECOND
