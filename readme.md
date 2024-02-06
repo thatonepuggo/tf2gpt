@@ -16,14 +16,14 @@ rcon_password dontcarelol // edit this if you want
 net_start
 ```
 
-you dont have to edit the rcon_password since the port for rcon likely isnt open, but if you do, edit `main.py` and change the PASSWORD variable to reflect that change.
+you dont have to edit the rcon_password since the port for rcon likely isnt open, but if you do, edit `app.py` and change the PASSWORD variable to reflect that change.
 
 if you do not already have a replicate account, you can make one by going to this link: https://replicate.com
 
 change the .env_example file to include your discord bot token and your replicate api token.
-rename .env_example to .env
+copy .env_example to .env
 
-in main.py, you can edit the prompt to your liking or you can leave it the same as it is.
+in app.py, you can edit the prompt to your liking or you can leave it the same as it is.
 
 in your browser, connect to the panel by going to https://localhost:5000.
 
