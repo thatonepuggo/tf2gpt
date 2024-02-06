@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+* {
+    color: white;
+    margin: 5px;
+    line-height: 1.7rem;
+    font-family: 'Roboto', sans-serif;
+}
+
+body {
+    background-image: url("/static/oak.png");
+}
+
+button,
+input {
+    color: black;
+}
+
+code {
+    background-color: #000000b3;
+    padding: 2px;
+    border-radius: 5px;
+    font-family: monospace;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    margin: auto;
+}
+
+.grid-item {
+    padding: 10px;
+    background-color: #0000006e;
+}
+
+.consolebox {
+    background-color: #0000007c;
+    border-color: #000000cc;
+    border-width: 2px;
+    border-style: solid;
+    padding: 10px;
+    height: 500px;
+    overflow: auto;
+    font-family: monospace;
+}
+
+.ping {
+    background-color: #5865f2cc;
+    /* blurple */
+    border-radius: 5px;
+    padding: 2px;
+}

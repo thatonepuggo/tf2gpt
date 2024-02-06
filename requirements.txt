@@ -1,4 +1,7 @@
+Flask==3.0.2
+Flask_SocketIO==5.3.6
 gTTS==2.5.1
+MarkupSafe==2.1.4
 pygame==2.5.2
 python-dotenv==1.0.1
 rcon==2.4.4

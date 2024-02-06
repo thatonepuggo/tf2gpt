@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block head %}
+<script src="{{url_for('static', filename='js/index.js')}}"></script>
+{% endblock %}
+{% block body %}
+<div class="grid-item">
+    <h1>Send</h1>
+    Send AI: <input type="text" id="aicmd"> <button id="sendaicmd">Send</button><br>
+    Send RCON: <input type="text" id="rconcmd"> <button id="sendrconcmd">Send</button><br>
+    <h5 id="info">Info will show up here.</h5>
+</div>
+<div class="grid-item">
+    <h1>Command</h1>
+    <h5 id="refreshTime">
+        {% if refreshTime == 1 %}
+        refreshes every second.
+        {% else %}
+        refreshes every {{refreshTime}} seconds.
+        {% endif %}
+    </h5>
+    <div class="consolebox" id="console"></div>
+</div>
+{% endblock %}

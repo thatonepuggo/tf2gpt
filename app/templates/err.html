@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block body %}
+    <div class="grid-item">
+        <h1>Error</h1>
+        <h3>An error occured: <code>{{error}}</code></h3>
+        <p>
+            {% if error == "game_not_running" %}
+                The game is not running.
+            {% else %}
+                Unknown error.
+            {% endif %}
+        </p>
+        <button href="{{url_for('home')}}">Retry</button>
+    </div>
+{% endblock %}

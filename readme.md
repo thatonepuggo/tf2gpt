@@ -2,7 +2,7 @@
 lets people in source games run ";ask" to ask an ai a question.
 
 # how to run
-install the dependencies: `pip install`
+install the dependencies: `pip install -r requirements.txt`
 
 add the following to your launch options:
 ```
@@ -24,6 +24,8 @@ change the .env_example file to include your discord bot token and your replicat
 rename .env_example to .env
 
 in main.py, you can edit the prompt to your liking or you can leave it the same as it is.
+
+in your browser, connect to the panel by going to https://localhost:5000.
 
 (OPTIONAL) get virtual audio cable: https://vb-audio.com/Cable/. this will let you use tts response message with the ;ttsask command.
 
