@@ -4,12 +4,16 @@ $(function() {
     let refreshTime = $("#refreshTime");
     let info = $("#info");
 
-    let rconconsole = $("#console");
+    let consoleTopBox = $("#consoleTopBox");
+    let rconconsole = $("#consoleBox");
+    let consoleBottom = $("#consoleBottom")
     let aicmd = $("#aicmd");
     let rconcmd = $("#rconcmd");
     let sendaicmd = $("#sendaicmd");
     let sendrconcmd = $("#sendrconcmd");
     
+    let scroll = $("#enableScroll")
+
     function sendCmd(event) {
         var type = event.data.type;
         var message = event.data.message.val();
@@ -44,6 +48,13 @@ $(function() {
     sendrconcmd.on("click", {"type": "rcon", "message": rconcmd},   sendCmd);
 
     socket.on("consoleget", (data) => {
-        rconconsole.html(data);
+        if (rconconsole.text() == data) {
+            return;
+        }
+        if (scroll.is(":checked")) {
+            console.log("yes");
+            consoleBottom.get()[0].scrollIntoView();
+        }
+        rconconsole.html(data); 
     })
-})
+});

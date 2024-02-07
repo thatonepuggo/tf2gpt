@@ -18,6 +18,10 @@
         refreshes every {{refreshTime}} seconds.
         {% endif %}
     </h5>
-    <div class="consolebox" id="console"></div>
+    <div class="consolebox" id="consoleTopBox">
+        <div id="consoleBox" style="font-family: monospace;"></div>
+        <div id="consoleBottom"></div>
+    </div>
+    <input type="checkbox" id="enableScroll" checked="true"> Scrolled
 </div>
 {% endblock %}

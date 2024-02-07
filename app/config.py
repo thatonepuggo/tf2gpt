@@ -1,4 +1,5 @@
 import re
+import rcon
 
 re_username = re.compile(r'.*(?= :)')
 re_message = re.compile(r'(?<=. : ).*')
@@ -20,3 +21,6 @@ VBCABLE = "CABLE Input (VB-Audio Virtual Cable)"
 CACHED_SND = "output.mp3"
 
 REFRESH_TIME = 1
+CONNECTION_CHECK_TIME = 5
+
+CONNECT_EXCEPTIONS = (ConnectionRefusedError, ConnectionResetError, rcon.SessionTimeout, rcon.WrongPassword, rcon.EmptyResponse)

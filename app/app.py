@@ -9,6 +9,7 @@ from markupsafe import Markup
 from gtts import gTTS
 from dotenv import load_dotenv
 from rcon.source import Client
+import rcon
 import replicate
 from pygame import mixer
 from pygame import _sdl2 as device
@@ -170,11 +171,11 @@ def run_rcon_thread():
     while True:
         try:
             with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
-                game_running = True
                 conlog = ConLog(game_root=GAMEROOT, mod_root=MODROOT)
                 while True:
                     escaped_log = str(Markup.escape(conlog.read())).replace("\n", "<br>")
                     socketio.emit("consoleget", escaped_log)
+                    
                     new = conlog.readnewlines()
 
                     for line in new:
@@ -186,10 +187,24 @@ def run_rcon_thread():
                             message = message_match.group().lstrip()
                             check_commands(client, message, username)
                     sleep(REFRESH_TIME)
-        except ConnectionRefusedError:
+        except CONNECT_EXCEPTIONS:
+            pass
+
+def run_rcon_try_thread():
+    global game_running
+    while True:
+        print("trying")
+        try:
+            with Client('127.0.0.1', 27015, passwd=PASSWORD) as try_client:
+                print("connected")
+                game_running = True
+        except CONNECT_EXCEPTIONS:
             game_running = False
+        sleep(CONNECTION_CHECK_TIME)
 
 if __name__ == '__main__':
-    rcon_thread = threading.Thread(target=run_rcon_thread) 
+    rcon_thread = threading.Thread(target=run_rcon_thread)
     rcon_thread.start()
-    socketio.run(app, debug=True, use_reloader=False)
+    rcon_try_thread = threading.Thread(target=run_rcon_try_thread)
+    rcon_try_thread.start()
+    socketio.run(app, use_reloader=False)
