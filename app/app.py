@@ -193,10 +193,8 @@ def run_rcon_thread():
 def run_rcon_try_thread():
     global game_running
     while True:
-        print("trying")
         try:
             with Client('127.0.0.1', 27015, passwd=PASSWORD) as try_client:
-                print("connected")
                 game_running = True
         except CONNECT_EXCEPTIONS:
             game_running = False
