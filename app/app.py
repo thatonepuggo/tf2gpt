@@ -69,6 +69,7 @@ You: <your message here>"""
     if full.lower().startswith("you: "):
         full = full[5:]
     chat_memory.append(f"You: {full}")
+    print(full)
     return full
 
 def chunkstring(string, length):
