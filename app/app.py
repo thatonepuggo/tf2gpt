@@ -34,7 +34,9 @@ vb_support = True
 global client
 global conlog
 global game_running
+global kill_switch
 
+kill_switch = False
 game_running = False
 
 def ask(author, question):
@@ -101,6 +103,8 @@ def _quick_play(devicename, file):
     mixer.music.load(file)
     mixer.music.play()
     while mixer.music.get_busy():
+        if kill_switch:
+            mixer.stop()
         pass
     mixer.quit()
     
@@ -115,7 +119,7 @@ def play_audio(file):
     out.join()
 
 def tts(client: Client, text):
-    tts = gTTS(text=text, lang='en', slow=False)
+    tts = gTTS(text=text, lang='en', tld="co.uk", slow=False)
     try:
         os.remove(CACHED_SND)
     except FileNotFoundError:
@@ -140,19 +144,17 @@ def ttssay(client: Client, args):
     tts(client, ' '.join(args[1:]))
     
 def check_commands(client: Client, message: str, username: str = USERNAME):
+    if kill_switch:
+        return
     args = message.split(' ')
-    if is_command(message, "ask"):
-        print("processing...")
-        response = ask(username, message)
-        print(response)
-    if is_command(message, "ask"):
-        print("processing...")
-        response = ask(username, message)
-        print(response)
-        for chunk in chunkstring(response, 127):
-            client.run('say', chunk)
-            sleep(1)
-    elif is_command(message, "backstory"):
+    #if is_command(message, "ask"):
+    #    print("processing...")
+    #    response = ask(username, message)
+    #    print(response)
+    #    for chunk in chunkstring(response, 127):
+    #        client.run('say', chunk)
+    #        sleep(1)
+    if is_command(message, "backstory"):
         print(len(args))
         print(args)
         if len(args) < 1:
@@ -171,7 +173,7 @@ def check_commands(client: Client, message: str, username: str = USERNAME):
 def home():
     if not game_running:
         return render_template('err.html', error="game_not_running")
-    return render_template('index.html', refreshTime=REFRESH_TIME)
+    return render_template('index.html', refreshTime=REFRESH_TIME, killSwitch=str(kill_switch).lower())
 
 @socketio.on("send_cmd")
 def send_cmd(data: dict):
@@ -189,6 +191,12 @@ def send_cmd(data: dict):
         check_commands(client, message)
     elif cmd_type == "rcon":
         client.run(message)
+
+@socketio.on("set_killswitch")
+def set_killswitch(val: bool):
+    print(f"KILLSWITCH: {val}")
+    global kill_switch
+    kill_switch = val
 
 def run_rcon_thread():
     global game_running

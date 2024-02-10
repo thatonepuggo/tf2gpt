@@ -12,7 +12,8 @@ $(function() {
     let sendaicmd = $("#sendaicmd");
     let sendrconcmd = $("#sendrconcmd");
     
-    let scroll = $("#enableScroll")
+    let scroll = $("#enableScroll");
+    let killswitch = $("#killSwitch");
 
     function sendCmd(event) {
         var type = event.data.type;
@@ -41,11 +42,16 @@ $(function() {
             sendrconcmd.trigger("click");
         }
     }
+
+    function killSwitchChanged() {
+        socket.emit("set_killswitch", killswitch.is(":checked"));
+    }
         
     aicmd.on("keydown",     {"type": "ai", "message": aicmd},       enterCmd);
     rconcmd.on("keydown",   {"type": "rcon", "message": rconcmd},   enterCmd);
     sendaicmd.on("click",   {"type": "ai", "message": aicmd},       sendCmd);
     sendrconcmd.on("click", {"type": "rcon", "message": rconcmd},   sendCmd);
+    killswitch.on("click", killSwitchChanged);
 
     socket.on("consoleget", (data) => {
         if (rconconsole.text() == data) {
@@ -56,5 +62,6 @@ $(function() {
             consoleBottom.get()[0].scrollIntoView();
         }
         rconconsole.html(data); 
-    })
+    });
+    killSwitchChanged();
 });
