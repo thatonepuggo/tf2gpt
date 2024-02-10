@@ -1,3 +1,4 @@
+import multiprocessing
 from time import sleep
 import os
 import threading
@@ -75,13 +76,16 @@ You: <your message here>"""
 def chunkstring(string, length):
     return (string[0+i:length+i] for i in range(0, len(string), length))
 
-mixer.init(devicename = VBCABLE)
+mixer.pre_init(devicename = VBCABLE)
+mixer.init()
 
 if not VBCABLE in device.audio.get_audio_device_names(False):
     print("To use voice-related AI commands, please get Virtual Audio Cable: https://vb-audio.com/Cable/.")
     vb_support = False
 else:
     print("Virtual Audio Cable found. vb commands enabled!")
+
+mixer.quit()
 
 def is_command(message, cmd):
     return message.lower().startswith(f"{PREFIX}{cmd}")
@@ -90,6 +94,25 @@ def vb_command(message, cmd):
     if not vb_support and is_command(message, cmd):
         print("support")
     return vb_support and is_command(message, cmd)
+
+def _quick_play(devicename, file):
+    mixer.pre_init(devicename=devicename)
+    mixer.init()
+    mixer.music.load(file)
+    mixer.music.play()
+    while mixer.music.get_busy():
+        pass
+    mixer.quit()
+    
+def play_audio(file):
+    inp = multiprocessing.Process(target=_quick_play, args=[VBCABLE, file]) 
+    out = multiprocessing.Process(target=_quick_play, args=[SOUNDOUTPUT, file]) 
+    
+    inp.start() 
+    out.start() 
+    
+    inp.join()
+    out.join()
 
 def tts(client: Client, text):
     tts = gTTS(text=text, lang='en', slow=False)
@@ -100,13 +123,14 @@ def tts(client: Client, text):
     tts.save(CACHED_SND)
     
     client.run('+voicerecord')
-    mixer.music.load(CACHED_SND)
-    sleep(0.1)
-    mixer.music.play()
-    while mixer.music.get_busy():
-        pass
-    mixer.quit()
-    mixer.init(devicename = VBCABLE)
+    play_audio(CACHED_SND)
+    #mixer.music.load(CACHED_SND)
+    #sleep(0.1)
+    #mixer.music.play()
+    #while mixer.music.get_busy():
+    #    pass
+    #mixer.quit()
+    #mixer.init(devicename = VBCABLE)
     client.run('-voicerecord')
 
 def ttsask(client: Client, username, args):

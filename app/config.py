@@ -17,7 +17,9 @@ PROMPT = "You are Jason Grant, the deathmatch mercenary from Open Fortress, an o
 "A friend from long ago, Merv, is the one who introduced you to the world of deathmatch. " \
 "He taught you most of what you know now, how to protect yourself in a fight, as well as your one-liners. "
 
-VBCABLE = "CABLE Input (VB-Audio Virtual Cable)" 
+VBCABLE = "CABLE Input (VB-Audio Virtual Cable)"
+SOUNDOUTPUT = "Headset Earphone (HyperX Virtual Surround Sound)"
+
 CACHED_SND = "output.mp3"
 
 REFRESH_TIME = 1
