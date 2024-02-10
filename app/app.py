@@ -112,7 +112,7 @@ def play_audio(file):
     inp = multiprocessing.Process(target=_quick_play, args=[VBCABLE, file]) 
     out = multiprocessing.Process(target=_quick_play, args=[SOUNDOUTPUT, file]) 
     
-    inp.start() 
+    inp.start()
     out.start() 
     
     inp.join()
@@ -145,7 +145,7 @@ def ttssay(client: Client, args):
     
 def check_commands(client: Client, message: str, username: str = USERNAME):
     global chat_memory
-    global backstory
+    global backstory 
     if kill_switch:
         return
     args = message.split(' ')
