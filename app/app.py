@@ -78,17 +78,6 @@ You: <your message here>"""
 def chunkstring(string, length):
     return (string[0+i:length+i] for i in range(0, len(string), length))
 
-mixer.pre_init(devicename = VBCABLE)
-mixer.init()
-
-if not VBCABLE in device.audio.get_audio_device_names(False):
-    print("To use voice-related AI commands, please get Virtual Audio Cable: https://vb-audio.com/Cable/.")
-    vb_support = False
-else:
-    print("Virtual Audio Cable found. vb commands enabled!")
-
-mixer.quit()
-
 def is_command(message, cmd):
     return message.lower().startswith(f"{PREFIX}{cmd}")
 
@@ -103,8 +92,6 @@ def _quick_play(devicename, file):
     mixer.music.load(file)
     mixer.music.play()
     while mixer.music.get_busy():
-        if kill_switch:
-            mixer.stop()
         pass
     mixer.quit()
     
@@ -113,10 +100,11 @@ def play_audio(file):
     out = multiprocessing.Process(target=_quick_play, args=[SOUNDOUTPUT, file]) 
     
     inp.start()
-    out.start() 
-    
-    inp.join()
-    out.join()
+    out.start()
+    while inp.is_alive() or out.is_alive():
+        if kill_switch:
+            inp.kill()
+            out.kill()
 
 def tts(client: Client, text):
     tts = gTTS(text=text, lang='en', tld="co.uk", slow=False)
@@ -237,6 +225,17 @@ def run_rcon_try_thread():
         sleep(CONNECTION_CHECK_TIME)
 
 if __name__ == '__main__':
+    mixer.pre_init(devicename = VBCABLE)
+    mixer.init()
+
+    if not VBCABLE in device.audio.get_audio_device_names(False):
+        print("To use voice-related AI commands, please get Virtual Audio Cable: https://vb-audio.com/Cable/.")
+        vb_support = False
+    else:
+        print("Virtual Audio Cable found. vb commands enabled!")
+
+    mixer.quit()
+    
     rcon_thread = threading.Thread(target=run_rcon_thread)
     rcon_thread.start()
     rcon_try_thread = threading.Thread(target=run_rcon_try_thread)
