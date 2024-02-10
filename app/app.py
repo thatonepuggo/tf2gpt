@@ -64,7 +64,7 @@ You: <your message here>"""
             "prompt": question,
             "temperature": 0.5,
             "system_prompt": gen_prompt,
-            "max_new_tokens": 128,
+            "max_new_tokens": 256,
             "min_new_tokens": -1
         },
     )
@@ -144,6 +144,7 @@ def ttssay(client: Client, args):
     tts(client, ' '.join(args[1:]))
     
 def check_commands(client: Client, message: str, username: str = USERNAME):
+    global chat_memory
     if kill_switch:
         return
     args = message.split(' ')
@@ -161,9 +162,10 @@ def check_commands(client: Client, message: str, username: str = USERNAME):
             print("ignored command. too few args")
             return
         backstory = ' '.join(args[1:])
-        client.run('say', f"[tf2gpt] set backstory to '{backstory}'")
         if args[1] == "default":
             backstory = PROMPT
+        client.run('say', f"[tf2gpt] set backstory to '{backstory}'")
+        chat_memory.clear()
     elif vb_command(message, "ttsask"):
         ttsask(client, username, args)
     elif vb_command(message, "ttssay"):
