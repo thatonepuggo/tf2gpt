@@ -145,6 +145,7 @@ def ttssay(client: Client, args):
     
 def check_commands(client: Client, message: str, username: str = USERNAME):
     global chat_memory
+    global backstory
     if kill_switch:
         return
     args = message.split(' ')
