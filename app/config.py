@@ -21,6 +21,7 @@ VBCABLE = "CABLE Input (VB-Audio Virtual Cable)"
 SOUNDOUTPUT = "Headset Earphone (HyperX Virtual Surround Sound)"
 
 CACHED_SND = "output.mp3"
+VOICE_TRAINING = "https://cdn.discordapp.com/attachments/1180790538388131903/1206092292830662736/reel.mp3?ex=65dabffa&is=65c84afa&hm=08ab4a023e3813eb77ab4c2e705f03502baa00fd86c655fb87c58d14a01b845a&"
 
 REFRESH_TIME = 1
 CONNECTION_CHECK_TIME = 5

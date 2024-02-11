@@ -3,6 +3,11 @@ import sys
 from time import sleep
 import os
 import threading
+import time
+
+import requests
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 from flask import Flask, render_template, session, request, url_for, redirect, send_from_directory
 from flask_socketio import SocketIO, emit
@@ -15,6 +20,8 @@ import rcon
 import replicate
 from pygame import mixer
 from pygame import _sdl2 as device
+import vlc
+
 from colorama import init
 from colorama import Fore
 from colorama import Back
@@ -89,37 +96,70 @@ def vb_command(message, cmd):
 
 # seperate process #
 
+player = vlc.MediaPlayer()
+
+# Get list of output devices
+def get_device(devicename):
+    mods = player.audio_output_device_enum()
+    if mods:
+        mod = mods
+        while mod:
+            mod = mod.contents
+            # If device is found, return its module and device id
+            if devicename in str(mod.description):
+                device = mod.device
+                module = mod.description
+                return device,module
+            mod = mod.next
 def _quick_play(devicename, file):
-    sys.stderr = open(os.devnull, 'w') # mute the output
+    #mixer.pre_init(devicename=devicename)
+    #mixer.init()
+    #mixer.music.load(file)
+    #mixer.music.play()
+    #while mixer.music.get_busy():
+    #    pass
+    #mixer.quit()
+    device, module = get_device(devicename)
+    media = vlc.Media(file)
+    player.set_media(media)
     
-    mixer.pre_init(devicename=devicename)
-    mixer.init()
-    mixer.music.load(file)
-    mixer.music.play()
-    while mixer.music.get_busy():
+    player.audio_output_device_set(None, device)
+    player.play()
+    while player.get_state() != 6: # ended
         pass
-    mixer.quit()
 
 # end seperate process #
 
 def play_audio(file):
     inp = multiprocessing.Process(target=_quick_play, args=[VBCABLE, file]) 
-    out = multiprocessing.Process(target=_quick_play, args=[SOUNDOUTPUT, file]) 
+    out = multiprocessing.Process(target=_quick_play, args=[SOUNDOUTPUT, file])
     
     inp.start()
     out.start()
+    
     while inp.is_alive() or out.is_alive():
         if kill_switch:
             inp.kill()
             out.kill()
 
 def tts(client: Client, text):
-    tts = gTTS(text=text, lang='en', tld="co.uk", slow=False)
-    try:
-        os.remove(CACHED_SND)
-    except FileNotFoundError:
-        print(Fore.RED + "file does not exist, skipping removal.")
-    tts.save(CACHED_SND)
+    output = replicate.run(
+        "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
+        input={
+            "speaker": VOICE_TRAINING,
+            "text": text
+        }
+    )
+    
+    response = requests.get(output, allow_redirects=True)
+    with open(CACHED_SND, "wb") as f:
+        f.write(response.content)
+    #tts = gTTS(text=text, lang='en', tld="co.uk", slow=False)
+    #try:
+    #    os.remove(CACHED_SND)
+    #except FileNotFoundError:
+    #    print(Fore.RED + "file does not exist, skipping removal.")
+    #tts.save(CACHED_SND)
     
     client.run('+voicerecord')
     play_audio(CACHED_SND)
