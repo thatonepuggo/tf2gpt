@@ -45,7 +45,9 @@ global client
 global conlog
 global game_running
 global kill_switch
+global last_text
 
+last_text = ""
 kill_switch = False
 game_running = False
 
@@ -143,23 +145,28 @@ def play_audio(file):
             out.kill()
 
 def tts(client: Client, text):
-    output = replicate.run(
-        "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
-        input={
-            "speaker": VOICE_TRAINING,
-            "text": text
-        }
-    )
-    
-    response = requests.get(output, allow_redirects=True)
-    with open(CACHED_SND, "wb") as f:
-        f.write(response.content)
-    #tts = gTTS(text=text, lang='en', tld="co.uk", slow=False)
-    #try:
-    #    os.remove(CACHED_SND)
-    #except FileNotFoundError:
-    #    print(Fore.RED + "file does not exist, skipping removal.")
-    #tts.save(CACHED_SND)
+    global last_text
+    if text != last_text:
+        output = replicate.run(
+            "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
+            input={
+                "speaker": VOICE_TRAINING,
+                "text": text
+            }
+        )
+
+        response = requests.get(output, allow_redirects=True)
+        with open(CACHED_SND, "wb") as f:
+            f.write(response.content)
+        #tts = gTTS(text=text, lang='en', tld="co.uk", slow=False)
+        #try:
+        #    os.remove(CACHED_SND)
+        #except FileNotFoundError:
+        #    print(Fore.RED + "file does not exist, skipping removal.")
+        #tts.save(CACHED_SND)
+        last_text = text
+    else:
+        print(Fore.RED + "using cached sound")
     
     client.run('+voicerecord')
     play_audio(CACHED_SND)
