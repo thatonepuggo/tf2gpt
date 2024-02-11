@@ -66,7 +66,7 @@ this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remem
 You: <your message here>"""
 
     chat_memory.append(f"{author}: {question}")
-    print(gen_prompt)
+    print(f"{Back.GREEN}{author}{Back.RESET}{Fore.GREEN}: {question}")
     message = replicate.run(
         "meta/llama-2-70b-chat",
         input={
