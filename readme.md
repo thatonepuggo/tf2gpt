@@ -4,6 +4,8 @@ lets people in source games run ";ask" to ask an ai a question.
 # how to run
 install the dependencies: `pip install -r requirements.txt`
 
+install vlc [here](https://www.videolan.org/)
+
 add the following to your launch options:
 ```
 -condebug -conclearlog -usercon -g15
