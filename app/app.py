@@ -1,4 +1,5 @@
 import multiprocessing
+import sys
 from time import sleep
 import os
 import threading
@@ -86,7 +87,13 @@ def is_command(message, cmd):
 def vb_command(message, cmd):
     return vb_support and is_command(message, cmd)
 
+# seperate process #
+
+def mute():
+    sys.stdout = open(os.devnull, 'w')
+
 def _quick_play(devicename, file):
+    mute()
     mixer.pre_init(devicename=devicename)
     mixer.init()
     mixer.music.load(file)
@@ -94,9 +101,11 @@ def _quick_play(devicename, file):
     while mixer.music.get_busy():
         pass
     mixer.quit()
-    
+
+# end seperate process #
+
 def play_audio(file):
-    inp = multiprocessing.Process(target=_quick_play, args=[VBCABLE, file]) 
+    inp = multiprocessing.Process(target=_quick_play, args=[VBCABLE, file], initializer=mute) 
     out = multiprocessing.Process(target=_quick_play, args=[SOUNDOUTPUT, file]) 
     
     inp.start()
@@ -129,7 +138,9 @@ def ttsask(client: Client, username, args):
     tts(client, ask(username, ' '.join(args[1:])))
     
 def ttssay(client: Client, args):
-    tts(client, ' '.join(args[1:]))
+    text = ' '.join(args[1:])
+    print(Fore.GREEN + text)
+    tts(client, text)
     
 def check_commands(client: Client, message: str, username: str = USERNAME):
     global chat_memory
