@@ -14,6 +14,9 @@ import rcon
 import replicate
 from pygame import mixer
 from pygame import _sdl2 as device
+from colorama import init
+from colorama import Fore
+from colorama import Back
 
 from conlog import ConLog
 from config import *
@@ -72,7 +75,7 @@ You: <your message here>"""
     if full.lower().startswith("you: "):
         full = full[5:]
     chat_memory.append(f"You: {full}")
-    print(full)
+    print(Fore.GREEN + full)
     return full
 
 def chunkstring(string, length):
@@ -82,8 +85,6 @@ def is_command(message, cmd):
     return message.lower().startswith(f"{PREFIX}{cmd}")
 
 def vb_command(message, cmd):
-    if not vb_support and is_command(message, cmd):
-        print("support")
     return vb_support and is_command(message, cmd)
 
 def _quick_play(devicename, file):
@@ -111,7 +112,7 @@ def tts(client: Client, text):
     try:
         os.remove(CACHED_SND)
     except FileNotFoundError:
-        print("file does not exist, skipping removal.")
+        print(Fore.RED + "file does not exist, skipping removal.")
     tts.save(CACHED_SND)
     
     client.run('+voicerecord')
@@ -148,7 +149,7 @@ def check_commands(client: Client, message: str, username: str = USERNAME):
         print(len(args))
         print(args)
         if len(args) < 1:
-            print("ignored command. too few args")
+            print(Fore.RED + "ignored command. too few args")
             return
         backstory = ' '.join(args[1:])
         if args[1] == "default":
@@ -172,10 +173,10 @@ def send_cmd(data: dict):
     message = data.get('message', '').strip()
     cmd_type = data.get('type', '').strip()
     if message == '':
-        print('message is empty')
+        print(Fore.RED + 'message is empty')
         return
     if cmd_type not in ['ai', 'rcon']:
-        print('incorrect type')
+        print(Fore.RED + 'incorrect type')
         return
     
     if cmd_type == "ai":
@@ -185,7 +186,7 @@ def send_cmd(data: dict):
 
 @socketio.on("set_killswitch")
 def set_killswitch(val: bool):
-    print(f"KILLSWITCH: {val}")
+    print(f"{Fore.RED} KILLSWITCH: {val}")
     global kill_switch
     kill_switch = val
 
@@ -225,14 +226,15 @@ def run_rcon_try_thread():
         sleep(CONNECTION_CHECK_TIME)
 
 if __name__ == '__main__':
+    init(autoreset=True)
     mixer.pre_init(devicename = VBCABLE)
     mixer.init()
 
     if not VBCABLE in device.audio.get_audio_device_names(False):
-        print("To use voice-related AI commands, please get Virtual Audio Cable: https://vb-audio.com/Cable/.")
+        print(Fore.RED + "To use voice-related AI commands, please get Virtual Audio Cable: https://vb-audio.com/Cable/.")
         vb_support = False
     else:
-        print("Virtual Audio Cable found. vb commands enabled!")
+        print(Fore.GREEN + "Virtual Audio Cable found. vb commands enabled!")
 
     mixer.quit()
     
