@@ -23,7 +23,6 @@ from config import *
 
 load_dotenv()
 
-
 socketio = SocketIO
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode="threading")
@@ -165,7 +164,7 @@ def check_commands(client: Client, message: str, username: str = USERNAME):
 def home():
     if not game_running:
         return render_template('err.html', error="game_not_running")
-    return render_template('index.html', refreshTime=REFRESH_TIME, killSwitch=str(kill_switch).lower())
+    return render_template('index.html', refreshTime=REFRESH_TIME, killSwitch=kill_switch)
 
 @socketio.on("send_cmd")
 def send_cmd(data: dict):
@@ -186,7 +185,7 @@ def send_cmd(data: dict):
 
 @socketio.on("set_killswitch")
 def set_killswitch(val: bool):
-    print(f"{Fore.RED} KILLSWITCH: {val}")
+    print(f"{Fore.RED}KILLSWITCH: {val}")
     global kill_switch
     kill_switch = val
 

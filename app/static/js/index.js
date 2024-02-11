@@ -57,11 +57,10 @@ $(function() {
         if (rconconsole.text() == data) {
             return;
         }
+        rconconsole.html(data);
         if (scroll.is(":checked")) {
-            console.log("yes");
             consoleBottom.get()[0].scrollIntoView();
         }
-        rconconsole.html(data); 
     });
     killSwitchChanged();
 });
