@@ -105,7 +105,7 @@ def _quick_play(devicename, file):
 # end seperate process #
 
 def play_audio(file):
-    inp = multiprocessing.Process(target=_quick_play, args=[VBCABLE, file], initializer=mute) 
+    inp = multiprocessing.Process(target=_quick_play, args=[VBCABLE, file]) 
     out = multiprocessing.Process(target=_quick_play, args=[SOUNDOUTPUT, file]) 
     
     inp.start()
