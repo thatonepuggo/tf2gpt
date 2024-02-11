@@ -31,7 +31,7 @@ from config import *
 
 load_dotenv()
 
-socketio = SocketIO
+#socketio = SocketIO
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode="threading")
 
@@ -91,7 +91,7 @@ def chunkstring(string, length):
     return (string[0+i:length+i] for i in range(0, len(string), length))
 
 def is_command(message, cmd):
-    return message.lower().startswith(f"{PREFIX}{cmd}")
+    return message.lower().split(' ')[0] == f"{PREFIX}{cmd}"
 
 def vb_command(message, cmd):
     return vb_support and is_command(message, cmd)
@@ -147,23 +147,24 @@ def play_audio(file):
 def tts(client: Client, text):
     global last_text
     if text != last_text:
-        output = replicate.run(
-            "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
-            input={
-                "speaker": VOICE_TRAINING,
-                "text": text
-            }
-        )
-
-        response = requests.get(output, allow_redirects=True)
-        with open(CACHED_SND, "wb") as f:
-            f.write(response.content)
-        #tts = gTTS(text=text, lang='en', tld="co.uk", slow=False)
-        #try:
-        #    os.remove(CACHED_SND)
-        #except FileNotFoundError:
-        #    print(Fore.RED + "file does not exist, skipping removal.")
-        #tts.save(CACHED_SND)
+        #output = replicate.run(
+        #    "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
+        #    input={
+        #        "speaker": VOICE_TRAINING,
+        #        "text": text
+        #    }
+        #)
+        
+        #response = requests.get(output, allow_redirects=True)
+        #with open(CACHED_SND, "wb") as f:
+        #    f.write(response.content)
+        
+        tts = gTTS(text=text, lang='en', tld="co.uk", slow=False)
+        try:
+            os.remove(CACHED_SND)
+        except FileNotFoundError:
+            print(Fore.RED + "file does not exist, skipping removal.")
+        tts.save(CACHED_SND)
         last_text = text
     else:
         print(Fore.RED + "using cached sound")
@@ -182,7 +183,7 @@ def tts(client: Client, text):
 def ttsask(client: Client, username, args):
     tts(client, ask(username, ' '.join(args[1:])))
     
-def ttssay(client: Client, args):
+def ttssay(client: Client, username, args):
     text = ' '.join(args[1:])
     print(Fore.GREEN + text)
     tts(client, text)
@@ -214,7 +215,7 @@ def check_commands(client: Client, message: str, username: str = USERNAME):
     elif vb_command(message, "ttsask"):
         ttsask(client, username, args)
     elif vb_command(message, "ttssay"):
-        ttssay(client, args)
+        ttssay(client, username, args)
 
 @app.route("/")
 def home():
