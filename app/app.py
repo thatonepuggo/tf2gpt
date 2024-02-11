@@ -89,11 +89,9 @@ def vb_command(message, cmd):
 
 # seperate process #
 
-def mute():
-    sys.stdout = open(os.devnull, 'w')
-
 def _quick_play(devicename, file):
-    mute()
+    sys.stderr = open(os.devnull, 'w') # mute the output
+    
     mixer.pre_init(devicename=devicename)
     mixer.init()
     mixer.music.load(file)
