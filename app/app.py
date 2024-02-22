@@ -1,11 +1,8 @@
-import multiprocessing
 import sys
 from time import sleep
 import os
 import threading
 import time
-
-import requests
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
@@ -15,8 +12,10 @@ from markupsafe import Markup
 
 from gtts import gTTS
 from dotenv import load_dotenv
-from rcon.source import Client
+
 import rcon
+from rcon.source import Client
+
 import replicate
 from pygame import mixer
 from pygame import _sdl2 as device
@@ -48,7 +47,7 @@ kill_switch = False
 game_running = False
 auto_disable_voice = True
 
-def ask(author, question):
+def ask(author: str, question: str):
     global chat_memory
     chat_memory = chat_memory[-20:]
     memory_string = '\n'.join(chat_memory)
@@ -125,23 +124,27 @@ def _quick_play(devicename, file):
     player.audio_output_device_set(None, device)
     player.play()
     while player.get_state() != 6: # ended
+        if kill_switch:
+            player.stop()
+            break
         pass
 
 # end seperate process #
 
 def play_audio(file):
-    inp = multiprocessing.Process(target=_quick_play, args=[VBCABLE, file]) 
-    out = multiprocessing.Process(target=_quick_play, args=[SOUNDOUTPUT, file])
+    inp = threading.Thread(target=_quick_play, args=[VBCABLE, file]) 
+    out = threading.Thread(target=_quick_play, args=[SOUNDOUTPUT, file])
     
     inp.start()
     out.start()
     
-    while inp.is_alive() or out.is_alive():
-        if kill_switch:
-            inp.kill()
-            out.kill()
+    inp.join()
+    out.join()
 
 def tts(client: Client, text):
+    if text.strip() == "":
+        print(f"{Fore.RED}Empty prompt in '{text}'")
+        return
     global last_text
     global auto_disable_voice
     if text != last_text:
@@ -303,7 +306,7 @@ if __name__ == '__main__':
     mixer.quit()
     
     rcon_thread = threading.Thread(target=run_rcon_thread)
-    rcon_thread.start()
     rcon_try_thread = threading.Thread(target=run_rcon_try_thread)
+    rcon_thread.start()
     rcon_try_thread.start()
     socketio.run(app, use_reloader=False)
