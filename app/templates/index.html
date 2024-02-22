@@ -9,10 +9,18 @@
     Send RCON: <input type="text" id="rconcmd"> <button id="sendrconcmd">Send</button><br>
     <h5 id="info">Info will show up here.</h5>
     {% if killSwitch %}
-    <input type="checkbox" id="killSwitch" checked="true"> KILL SWITCH
+    <input type="checkbox" id="killSwitch" checked="true">
     {% else %}
-    <input type="checkbox" id="killSwitch"> KILL SWITCH
+    <input type="checkbox" id="killSwitch">
     {% endif %}
+    KILL SWITCH
+    <br>
+    {% if autoDisableVoice %}
+    <input type="checkbox" id="autoDisableVoice" checked="true">
+    {% else %}
+    <input type="checkbox" id="autoDisableVoice">
+    {% endif %}
+    AUTO DISABLE VOICE
 </div>
 <div class="grid-item">
     <h1>Command</h1>

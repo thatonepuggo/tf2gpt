@@ -14,6 +14,7 @@ $(function() {
     
     let scroll = $("#enableScroll");
     let killswitch = $("#killSwitch");
+    let autoDisableVoice = $("#autoDisableVoice");
 
     function sendCmd(event) {
         var type = event.data.type;
@@ -46,12 +47,17 @@ $(function() {
     function killSwitchChanged() {
         socket.emit("set_killswitch", killswitch.is(":checked"));
     }
+
+    function autoDisableVoiceChanged() {
+        socket.emit("set_auto_disable_voice", autoDisableVoice.is(":checked"));
+    }
         
     aicmd.on("keydown",     {"type": "ai", "message": aicmd},       enterCmd);
     rconcmd.on("keydown",   {"type": "rcon", "message": rconcmd},   enterCmd);
     sendaicmd.on("click",   {"type": "ai", "message": aicmd},       sendCmd);
     sendrconcmd.on("click", {"type": "rcon", "message": rconcmd},   sendCmd);
     killswitch.on("click", killSwitchChanged);
+    autoDisableVoice.on("click", autoDisableVoiceChanged);
 
     socket.on("consoleget", (data) => {
         if (rconconsole.text() == data) {
@@ -63,4 +69,5 @@ $(function() {
         }
     });
     killSwitchChanged();
+    autoDisableVoiceChanged();
 });

@@ -42,14 +42,11 @@ vb_support = True
 
 # globals #
 global client
-global conlog
-global game_running
-global kill_switch
-global last_text
 
 last_text = ""
 kill_switch = False
 game_running = False
+auto_disable_voice = True
 
 def ask(author, question):
     global chat_memory
@@ -146,6 +143,7 @@ def play_audio(file):
 
 def tts(client: Client, text):
     global last_text
+    global auto_disable_voice
     if text != last_text:
         #output = replicate.run(
         #    "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
@@ -178,7 +176,8 @@ def tts(client: Client, text):
     #    pass
     #mixer.quit()
     #mixer.init(devicename = VBCABLE)
-    client.run('-voicerecord')
+    if auto_disable_voice:
+        client.run('-voicerecord')
 
 def ttsask(client: Client, username, args):
     tts(client, ask(username, ' '.join(args[1:])))
@@ -219,9 +218,12 @@ def check_commands(client: Client, message: str, username: str = USERNAME):
 
 @app.route("/")
 def home():
+    global auto_disable_voice
+    global kill_switch
+    
     if not game_running:
         return render_template('err.html', error="game_not_running")
-    return render_template('index.html', refreshTime=REFRESH_TIME, killSwitch=kill_switch)
+    return render_template('index.html', refreshTime=REFRESH_TIME, killSwitch=kill_switch, autoDisableVoice=auto_disable_voice)
 
 @socketio.on("send_cmd")
 def send_cmd(data: dict):
@@ -245,6 +247,12 @@ def set_killswitch(val: bool):
     print(f"{Fore.RED}KILLSWITCH: {val}")
     global kill_switch
     kill_switch = val
+    
+@socketio.on("set_auto_disable_voice")
+def set_auto_disable_voice(val: bool):
+    print(f"{Fore.RED}AUTO DISABLE: {val}")
+    global auto_disable_voice
+    auto_disable_voice = val
 
 def run_rcon_thread():
     global game_running
