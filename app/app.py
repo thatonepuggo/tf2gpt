@@ -71,7 +71,7 @@ You: <your message here>"""
         "meta/llama-2-70b-chat",
         input={
             "debug": False,
-            "top_k": 50,
+            #"top_k": 50,
             "top_p": 1,
             "prompt": question,
             "temperature": 0.5,
