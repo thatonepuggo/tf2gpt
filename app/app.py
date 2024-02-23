@@ -187,7 +187,8 @@ def tts(client: Client, text):
         client.run('-voicerecord')
 
 def ttsask(client: Client, username, args):
-    tts(client, f"{username} asks: {" ".join(args[1:])}. {ask(username, ' '.join(args[1:]))}")
+    question = " ".join(args[1:])
+    tts(client, f"{username} asks: {question}. {ask(username, question)}")
     
 def ttssay(client: Client, username, args):
     text = ' '.join(args[1:])
