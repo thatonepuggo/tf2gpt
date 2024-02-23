@@ -188,7 +188,7 @@ def tts(client: Client, text):
 
 def ttsask(client: Client, username, args):
     question = " ".join(args[1:])
-    tts(client, f"{username} asks: {question}. {ask(username, question)}")
+    tts(client, f"{username} asks: {', '.join(args[1:]) if SAY_USERNAME_LIKE_FIRST_GRADER else question}. {ask(username, question)}")
     
 def ttssay(client: Client, username, args):
     text = ' '.join(args[1:])

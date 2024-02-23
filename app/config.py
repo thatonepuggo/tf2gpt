@@ -5,6 +5,8 @@ re_username = re.compile(r'.*(?= :)')
 re_message = re.compile(r'(?<=. : ).*')
 
 USERNAME = "pug"
+BACKSTORY_MAX_LEN = 20
+SAY_USERNAME_LIKE_FIRST_GRADER = False
 
 GAMEROOT = "S:/SteamLibrary/steamapps/common/Team Fortress 2"
 MODROOT = "tf"
@@ -28,6 +30,5 @@ VOICE_TRAINING = "https://cdn.discordapp.com/attachments/1180790538388131903/120
 REFRESH_TIME = 1
 CONNECTION_CHECK_TIME = 5
 
-BACKSTORY_MAX_LEN = 20
 
 CONNECT_EXCEPTIONS = (ConnectionRefusedError, ConnectionResetError, rcon.SessionTimeout, rcon.WrongPassword, rcon.EmptyResponse)
