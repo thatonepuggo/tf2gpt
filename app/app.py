@@ -1,3 +1,4 @@
+import multiprocessing
 import sys
 from time import sleep
 import os
@@ -111,6 +112,7 @@ def get_device(devicename):
                 module = mod.description
                 return device,module
             mod = mod.next
+
 def _quick_play(devicename, file):
     #mixer.pre_init(devicename=devicename)
     #mixer.init()
@@ -126,22 +128,22 @@ def _quick_play(devicename, file):
     player.audio_output_device_set(None, device)
     player.play()
     while player.get_state() != 6: # ended
-        if kill_switch:
-            player.stop()
-            break
         pass
 
 # end seperate process #
 
 def play_audio(file):
-    inp = threading.Thread(target=_quick_play, args=[VBCABLE, file], daemon=True) 
-    out = threading.Thread(target=_quick_play, args=[SOUNDOUTPUT, file], daemon=True)
+    inp = multiprocessing.Process(target=_quick_play, args=[VBCABLE, file], daemon=True) 
+    out = multiprocessing.Process(target=_quick_play, args=[SOUNDOUTPUT, file], daemon=True)
     
     inp.start()
     out.start()
     
-    inp.join()
-    out.join()
+    while inp.is_alive() and out.is_alive():
+        if kill_switch:
+            inp.kill()
+            out.kill()
+            break
 
 def tts(client: Client, text):
     if text.strip() == "":
@@ -214,7 +216,8 @@ def check_commands(client: Client, message: str, username: str = USERNAME):
         backstory = ' '.join(args[1:])
         if args[1] == "default":
             backstory = PROMPT
-        client.run('say', f"[tf2gpt] set backstory to '{backstory}'")
+        sleep(2)
+        tts(client, f"set backstory to '{backstory if len(backstory) < BACKSTORY_MAX_LEN else f"{backstory[:BACKSTORY_MAX_LEN]} dot dot dot"}'")
         chat_memory.clear()
     elif vb_command(message, "ttsask"):
         ttsask(client, username, args)

@@ -26,4 +26,6 @@ VOICE_TRAINING = "https://cdn.discordapp.com/attachments/1180790538388131903/120
 REFRESH_TIME = 1
 CONNECTION_CHECK_TIME = 5
 
+BACKSTORY_MAX_LEN = 20
+
 CONNECT_EXCEPTIONS = (ConnectionRefusedError, ConnectionResetError, rcon.SessionTimeout, rcon.WrongPassword, rcon.EmptyResponse)
