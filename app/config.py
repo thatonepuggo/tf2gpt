@@ -6,7 +6,7 @@ re_message = re.compile(r'(?<=. : ).*')
 
 USERNAME = "pug"
 BACKSTORY_MAX_LEN = 20
-SAY_USERNAME_LIKE_FIRST_GRADER = False
+SAY_QUESTION_LIKE_FIRST_GRADER = True
 
 GAMEROOT = "S:/SteamLibrary/steamapps/common/Team Fortress 2"
 MODROOT = "tf"
