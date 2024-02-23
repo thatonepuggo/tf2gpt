@@ -132,8 +132,8 @@ def _quick_play(devicename, file):
 # end seperate process #
 
 def play_audio(file):
-    inp = threading.Thread(target=_quick_play, args=[VBCABLE, file]) 
-    out = threading.Thread(target=_quick_play, args=[SOUNDOUTPUT, file])
+    inp = threading.Thread(target=_quick_play, args=[VBCABLE, file], daemon=True) 
+    out = threading.Thread(target=_quick_play, args=[SOUNDOUTPUT, file], daemon=True)
     
     inp.start()
     out.start()
@@ -305,8 +305,8 @@ if __name__ == '__main__':
 
     mixer.quit()
     
-    rcon_thread = threading.Thread(target=run_rcon_thread)
-    rcon_try_thread = threading.Thread(target=run_rcon_try_thread)
+    rcon_thread = threading.Thread(target=run_rcon_thread, daemon=True)
+    rcon_try_thread = threading.Thread(target=run_rcon_try_thread, daemon=True)
     rcon_thread.start()
     rcon_try_thread.start()
     socketio.run(app, use_reloader=False)
