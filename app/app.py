@@ -54,9 +54,6 @@ def ask(author: str, question: str):
     gen_prompt = f"""{backstory}
 here is your current chat history, use this to remember context from earlier. (if 'You' said this, you said this. Otherwise, that was a user.).
 this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remember you saying this some time ago." if it isn't acutally in history, dont say it.
-
-do not put 'you:' at the beginning of your message, as adding it is redundant.
-also, do not wrap your message in quotes. you may use quotes in your response, but don't put them at the beginning or end.
 ---beginning of your chat history, use this as memory.---
 {memory_string}
 ---end of your chat history---
@@ -65,7 +62,7 @@ also, do not wrap your message in quotes. you may use quotes in your response, b
 You: <your message here>"""
 
     chat_memory.append(f"{author}: {question}")
-    print(f"{Back.GREEN}{author}{Back.RESET}{Fore.GREEN}: {question}")
+    print(f"{Back.CYAN}{author}{Back.RESET}{Fore.CYAN}: {question}")
     message = replicate.run(
         "meta/llama-2-70b-chat",
         input={
@@ -80,6 +77,10 @@ You: <your message here>"""
         },
     )
     full = ''.join(message)
+    
+    full = re.sub("^you: ?", "", full, flags=re.RegexFlag.IGNORECASE) # check if message starts with you:
+    full = re.sub("^[\"\']|[\"\']$", "", full) # check if message has quotes at beginning and end
+    
     chat_memory.append(f"You: {full}")
     print(Fore.GREEN + full)
     return full
