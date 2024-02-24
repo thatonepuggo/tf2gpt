@@ -248,7 +248,7 @@ def send_cmd(data: dict):
         return
     
     if cmd_type == "ai":
-        queue.insert(1, {"username": USERNAME, "message": message})
+        queue.insert(0, {"username": USERNAME, "message": message})
     elif cmd_type == "rcon":
         client.run(message)
         
