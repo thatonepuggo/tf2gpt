@@ -251,7 +251,34 @@ def send_cmd(data: dict):
         queue.insert(1, {"username": USERNAME, "message": message})
     elif cmd_type == "rcon":
         client.run(message)
-
+        
+@socketio.on("queue_action")
+def queue_action(data: dict):
+    global queue
+    index = data["index"]
+    action = data["action"]
+    print(index, action)
+    if len(queue) < index + 1:
+        return False
+    item = queue[index]
+    if action == 0: # delete
+        del queue[index]
+    elif action == 1: # send up
+        if index - 1 < 0:
+            return False
+        queue = util.swap(queue, index, index - 1)
+    elif action == 2: # send down
+        if index + 1 >= len(queue):
+            return False
+        queue = util.swap(queue, index, index + 1)
+    elif action == 3: # send to top
+        del queue[index]
+        queue.insert(1, item)
+    elif action == 4: # send to back
+        del queue[index]
+        queue.insert(len(queue) + 1, item)
+    send_queue()
+    
 @socketio.on("set_killswitch")
 def set_killswitch(val: bool):
     print(f"{Fore.RED}KILLSWITCH: {val}")
@@ -274,30 +301,24 @@ def run_rcon_thread():
         try:
             with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
                 while True:
-                    new = conlog.readnewlines()
-
-                    for line in new:
-                        username_match = re_username.search(line)
-                        message_match = re_message.search(line)
-
-                        if username_match and message_match:
-                            username = username_match.group()
-                            message = message_match.group().lstrip()
-                            # add message to the end of the queue
-                            if check_commands(client, username, message, False):
-                                queue.append({"username": username, "message": message})
                             
                     if len(queue) >= 1:
                         # get oldest message so far
-                        oldest = queue[0]
+                        oldest = queue.pop()
                         username = oldest["username"]
                         message = oldest["message"]
                         check_commands(client, username, message) # run command
-                        del queue[0]
                         
                     sleep(REFRESH_TIME)
         except CONNECT_EXCEPTIONS:
             pass
+
+def send_queue():
+    escaped_queue = []
+    for i in queue:
+        queue_thing = {"username": util.escape_markup(i["username"]), "message": util.escape_markup(i["message"])}
+        escaped_queue.append(queue_thing)
+    socketio.emit("queueget", escaped_queue)
 
 def run_rcon_try_thread():
     global game_running
@@ -315,18 +336,29 @@ def run_rcon_ping_thread():
         try:
             with Client('127.0.0.1', 27015, passwd=PASSWORD) as ping_client:
                 while True:
+                    # update the queue
+                    new = conlog.readnewlines()
+
+                    for line in new:
+                        username_match = re_username.search(line)
+                        message_match = re_message.search(line)
+
+                        if username_match and message_match:
+                            username = username_match.group()
+                            message = message_match.group().lstrip()
+                            # add message to the end of the queue
+                            if check_commands(client, username, message, False):
+                                queue.append({"username": username, "message": message})
+                                
                     # send the log
                     escaped_log = util.remove_lines(conlog.read(), LOG_MAX_LINES)
                     escaped_log = util.escape_markup(escaped_log)
                     socketio.emit("consoleget", escaped_log)
 
                     # send the queue
-                    escaped_queue = []
-                    for i in queue:
-                        queue_thing = {"username": util.escape_markup(i["username"]), "message": util.escape_markup(i["message"])}
-                        escaped_queue.append(queue_thing)
-                    socketio.emit("queueget", escaped_queue)
+                    send_queue()
                     sleep(REFRESH_TIME)
+                    
         except CONNECT_EXCEPTIONS:
             pass
 

@@ -1,6 +1,15 @@
-$(function() {
-    var socket = io();
+let socket = io();
 
+function actionLink(index, action, text) {
+    var ret = `<a href="javascript:void(0)" onclick="sendAction(${index}, ${action})">${text}</a>`;
+    return ret;
+}
+
+function sendAction(index, action) {
+    socket.emit("queue_action", {"index": index, "action": action});
+}
+
+$(function() {
     let refreshTime = $("#refreshTime");
     let info = $("#info");
 
@@ -71,8 +80,11 @@ $(function() {
         var markup = "";
         if (queue.length >= 1) {
             for (var i = 0; i < queue.length; i++) {
+                var actionHTML = `${actionLink(i, 0, "del")} ` +
+                `Send ${actionLink(i, 1, "up")}/${actionLink(i, 2, "down")} in queue. ` +
+                `Send to ${actionLink(i, 3, "front")}/${actionLink(i, 4, "back")}`;
                 var elem = queue[i];
-                markup += `<tr><td>${elem['username']}</td><td>${elem['message']}</td><td>not implemented</td></tr>`;
+                markup += `<tr><td>${elem['username']}</td><td>${elem['message']}</td><td>${actionHTML}</td></tr>`;
             }
         } else {
             markup = "<tr><td colspan=\"3\">the queue is empty</td></tr>"

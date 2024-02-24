@@ -16,3 +16,10 @@ def remove_lines(input_string, max_lines):
         lines = lines[-max_lines:]
 
     return '\n'.join(lines)
+
+def swap(list, pos1, pos2):
+    """
+    swaps two items in a list
+    """
+    list[pos1], list[pos2] = list[pos2], list[pos1]
+    return list
