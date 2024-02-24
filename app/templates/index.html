@@ -3,7 +3,7 @@
 <script src="{{url_for('static', filename='js/index.js')}}"></script>
 {% endblock %}
 {% block body %}
-<div class="grid-item">
+<div class="grid-item grid1">
     <h1>Send</h1>
     Send AI: <input type="text" id="aicmd"> <button id="sendaicmd">Send</button><br>
     Send RCON: <input type="text" id="rconcmd"> <button id="sendrconcmd">Send</button><br>
@@ -22,7 +22,7 @@
     {% endif %}
     AUTO DISABLE VOICE
 </div>
-<div class="grid-item">
+<div class="grid-item grid2">
     <h1>Command</h1>
     <h5 id="refreshTime">
         {% if refreshTime == 1 %}
@@ -31,10 +31,22 @@
         refreshes every {{refreshTime}} seconds.
         {% endif %}
     </h5>
-    <div class="consolebox" id="consoleTopBox">
-        <div id="consoleBox" style="font-family: monospace;"></div>
-        <div id="consoleBottom"></div>
+    <div class="consolebox" id="scroller">
+        <div id="consoleBox"></div>
+        <div id="anchor"></div>
     </div>
-    <input type="checkbox" id="enableScroll" checked="true"> Scrolled
+</div>
+<div class="grid-item grid3">
+    <h1>Queue Length: <span id="queuelength"></span></h1>
+    <table id="queue">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Message</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 </div>
 {% endblock %}

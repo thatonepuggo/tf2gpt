@@ -1,14 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 
 * {
+    --col-bg: #0000006e;
+    --col-console: #0000007c;
+    --col-console-darker: #000000c2;
+
+    --col-border: #000000cc;
+
     color: white;
     margin: 5px;
     line-height: 1.7rem;
     font-family: 'Roboto', sans-serif;
 }
 
+
 body {
     background-image: url("/static/oak.png");
+
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    overflow: none none;
 }
 
 button,
@@ -16,38 +28,52 @@ input {
     color: black;
 }
 
-code {
-    background-color: #000000b3;
-    padding: 2px;
-    border-radius: 5px;
-    font-family: monospace;
+table {
+    width: fit-content(100%);
+}
+
+td, th {
+    background-color: var(--col-console);
+    border-color: var(--col-border);
+}
+
+tr:nth-child(even) {
+    background-color: var(--col-console-darker);
 }
 
 .grid-container {
     display: grid;
-    grid-template-columns: auto auto auto;
-    margin: auto;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
 }
+    
+.grid1 { grid-area: 1 / 1 / 2 / 2; }
+.grid2 { grid-area: 1 / 2 / 2 / 3; }
+.grid3 { grid-area: 2 / 1 / 3 / 3; }
 
 .grid-item {
     padding: 10px;
-    background-color: #0000006e;
+    background-color: var(--col-bg);
+}
+
+#scroller * {
+    overflow-anchor: none;
+}
+
+#anchor {
+    overflow-anchor: auto;
+    height: 1px;
 }
 
 .consolebox {
-    background-color: #0000007c;
-    border-color: #000000cc;
+    background-color: var(--col-console);
+    border-color: var(--col-border);
     border-width: 2px;
     border-style: solid;
+    height: 300px;
     padding: 10px;
-    height: 500px;
     overflow: auto;
     font-family: monospace;
-}
-
-.ping {
-    background-color: #5865f2cc;
-    /* blurple */
-    border-radius: 5px;
-    padding: 2px;
 }

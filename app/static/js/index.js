@@ -4,17 +4,17 @@ $(function() {
     let refreshTime = $("#refreshTime");
     let info = $("#info");
 
-    let consoleTopBox = $("#consoleTopBox");
+    let consoleTopBox = $("#scroller");
     let rconconsole = $("#consoleBox");
-    let consoleBottom = $("#consoleBottom")
     let aicmd = $("#aicmd");
     let rconcmd = $("#rconcmd");
     let sendaicmd = $("#sendaicmd");
     let sendrconcmd = $("#sendrconcmd");
     
-    let scroll = $("#enableScroll");
     let killswitch = $("#killSwitch");
     let autoDisableVoice = $("#autoDisableVoice");
+    
+    let scrolls = 0;
 
     function sendCmd(event) {
         var type = event.data.type;
@@ -60,14 +60,23 @@ $(function() {
     autoDisableVoice.on("click", autoDisableVoiceChanged);
 
     socket.on("consoleget", (data) => {
-        if (rconconsole.text() == data) {
-            return;
-        }
         rconconsole.html(data);
-        if (scroll.is(":checked")) {
-            consoleBottom.get()[0].scrollIntoView();
-        }
+        if (scrolls == 0) consoleTopBox.scrollTop(consoleTopBox[0].scrollHeight - consoleTopBox[0].clientHeight);
+        scrolls++;
     });
+
+    socket.on("queueget", (queue) => {
+        $("#queuelength").text(queue.length);
+        $("#queue tbody").empty();
+        var markup = "<tr>";
+        for (var i = 0; i < queue.length; i++) {
+            var elem = queue[i];
+            markup += `<td>${elem['username']}</td><td>${elem['message']}</td><td>not implemented</td>`;
+        }
+        markup += `</tr>`;
+        $("#queue tbody").append(markup);
+    });
+
     killSwitchChanged();
     autoDisableVoiceChanged();
 });

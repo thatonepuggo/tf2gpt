@@ -9,7 +9,6 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 from flask import Flask, render_template, session, request, url_for, redirect, send_from_directory
 from flask_socketio import SocketIO, emit
-from markupsafe import Markup
 
 from gtts import gTTS
 from dotenv import load_dotenv
@@ -29,6 +28,7 @@ from colorama import Back
 from conlog import ConLog
 from config import *
 from aicmd import AICommand
+import util
 
 load_dotenv()
 
@@ -49,7 +49,7 @@ kill_switch = False
 game_running = False
 auto_disable_voice = True
 queue = []
-
+conlog = ConLog(game_root=GAMEROOT, mod_root=MODROOT)
 
 def ask(author: str, question: str):
     global backstory
@@ -206,9 +206,9 @@ def cmd_ttssay(client: Client, username: str, message: str, args: list[str]):
     tts(client, text)
 
 commands = [
-    AICommand(name="backstory", func=cmd_backstory, min_args=1),
-    AICommand(name="ttsask", func=cmd_ttsask, voice=True),
-    AICommand(name="ttssay", func=cmd_ttssay, voice=True),
+    AICommand(name="backstory", aliases=["become", "story", "bs", "prompt"], func=cmd_backstory, min_args=1),
+    AICommand(name="ttsask", aliases=["ask", "task", "ttask"], func=cmd_ttsask, min_args=1, voice=True),
+    AICommand(name="ttssay", aliases=["say", "tsay", "ttsay"], func=cmd_ttssay, min_args=1, voice=True),
 ]
 
 def check_commands(client: Client, username: str = USERNAME, message: str = "", run = True):
@@ -264,19 +264,16 @@ def set_auto_disable_voice(val: bool):
     global auto_disable_voice
     auto_disable_voice = val
 
-@socketio.on("")
 
 def run_rcon_thread():
     global game_running
     global client
+    global queue
+    global conlog
     while True:
         try:
             with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
-                conlog = ConLog(game_root=GAMEROOT, mod_root=MODROOT)
                 while True:
-                    escaped_log = str(Markup.escape(conlog.read())).replace("\n", "<br>")
-                    socketio.emit("consoleget", escaped_log)
-                    
                     new = conlog.readnewlines()
 
                     for line in new:
@@ -311,6 +308,27 @@ def run_rcon_try_thread():
         except CONNECT_EXCEPTIONS:
             game_running = False
         sleep(CONNECTION_CHECK_TIME)
+        
+def run_rcon_ping_thread():
+    global conlog
+    while True:
+        try:
+            with Client('127.0.0.1', 27015, passwd=PASSWORD) as ping_client:
+                while True:
+                    # send the log
+                    escaped_log = util.remove_lines(conlog.read(), LOG_MAX_LINES)
+                    escaped_log = util.escape_markup(escaped_log)
+                    socketio.emit("consoleget", escaped_log)
+
+                    # send the queue
+                    escaped_queue = []
+                    for i in queue:
+                        queue_thing = {"username": util.escape_markup(i["username"]), "message": util.escape_markup(i["message"])}
+                        escaped_queue.append(queue_thing)
+                    socketio.emit("queueget", escaped_queue)
+                    sleep(REFRESH_TIME)
+        except CONNECT_EXCEPTIONS:
+            pass
 
 if __name__ == '__main__':
     init(autoreset=True)
@@ -327,6 +345,8 @@ if __name__ == '__main__':
     
     rcon_thread = threading.Thread(target=run_rcon_thread, daemon=True)
     rcon_try_thread = threading.Thread(target=run_rcon_try_thread, daemon=True)
+    rcon_ping_thread = threading.Thread(target=run_rcon_ping_thread, daemon=True)
     rcon_thread.start()
     rcon_try_thread.start()
+    rcon_ping_thread.start()
     socketio.run(app, use_reloader=False)
