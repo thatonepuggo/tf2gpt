@@ -52,6 +52,7 @@ queue = []
 
 
 def ask(author: str, question: str):
+    global backstory
     global chat_memory
     chat_memory = chat_memory[-20:]
     memory_string = '\n'.join(chat_memory)
@@ -213,7 +214,9 @@ def check_commands(client: Client, username: str = USERNAME, message: str = "", 
     args = message.split(' ')
     for cmd in commands:
         name = cmd.name
-        can_run = cmd.is_command(message) and (cmd.voice == vb_support)
+        can_run = cmd.is_command(message)
+        if cmd.voice and not vb_support:
+            can_run = False
         if can_run:
             if run: # only run the command if run is enabled
                 cmd.exec(client, username, message)
@@ -242,7 +245,7 @@ def send_cmd(data: dict):
         return
     
     if cmd_type == "ai":
-        queue.append({"username": USERNAME, "message": message})
+        queue.insert(1, {"username": USERNAME, "message": message})
     elif cmd_type == "rcon":
         client.run(message)
 
@@ -257,6 +260,8 @@ def set_auto_disable_voice(val: bool):
     print(f"{Fore.RED}AUTO DISABLE: {val}")
     global auto_disable_voice
     auto_disable_voice = val
+
+@socketio.on("")
 
 def run_rcon_thread():
     global game_running

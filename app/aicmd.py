@@ -19,5 +19,6 @@ class AICommand:
     
     def exec(self, client: Client, username: str = USERNAME, message: str = ""):
         args = message.split(' ')
-        return self.func(client, username, message, args)
-    
+        if len(args) >= self.min_args:
+            return self.func(client, username, message, args)
+        return False
