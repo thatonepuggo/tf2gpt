@@ -67,7 +67,10 @@ this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remem
 You: <your message here>"""
 
     chat_memory.append(f"{author}: {question}")
+    
+    # print question
     print(f"{Back.CYAN}{author}{Back.RESET}{Fore.CYAN}: {question}")
+    
     message = replicate.run(
         "meta/llama-2-70b-chat",
         input={
@@ -87,7 +90,7 @@ You: <your message here>"""
     full = re.sub("^[\"\']|[\"\']$", "", full) # check if message has quotes at beginning and end
     
     chat_memory.append(f"You: {full}")
-    print(Fore.GREEN + full)
+    print(Fore.GREEN + full + "\n")
     return full
 
 def chunkstring(string, length):
@@ -199,7 +202,7 @@ def cmd_ttsask(client: Client, username: str, message: str, args: list[str]):
 
 def cmd_ttssay(client: Client, username: str, message: str, args: list[str]):
     text = ' '.join(args[1:])
-    print(Fore.GREEN + text)
+    print(Fore.GREEN + text + "\n")
     tts(client, text)
 
 commands = [
@@ -288,7 +291,6 @@ def run_rcon_thread():
                                 queue.append({"username": username, "message": message})
                             
                     if len(queue) >= 1:
-                        print(queue)
                         # get oldest message so far
                         oldest = queue[0]
                         username = oldest["username"]
