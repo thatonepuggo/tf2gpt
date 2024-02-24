@@ -304,7 +304,7 @@ def run_rcon_thread():
                             
                     if len(queue) >= 1:
                         # get oldest message so far
-                        oldest = queue.pop()
+                        oldest = queue.pop(0)
                         username = oldest["username"]
                         message = oldest["message"]
                         check_commands(client, username, message) # run command
@@ -319,7 +319,7 @@ def send_queue():
         queue_thing = {"username": util.escape_markup(i["username"]), "message": util.escape_markup(i["message"])}
         escaped_queue.append(queue_thing)
     socketio.emit("queueget", escaped_queue)
-
+    
 def run_rcon_try_thread():
     global game_running
     while True:
