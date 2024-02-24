@@ -29,11 +29,12 @@ input {
 }
 
 table {
-    width: fit-content(100%);
+    width: 100vh;
 }
 
 td, th {
     background-color: var(--col-console);
+    border-width: 2px;
     border-color: var(--col-border);
 }
 

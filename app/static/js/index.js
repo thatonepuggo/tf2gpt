@@ -68,12 +68,15 @@ $(function() {
     socket.on("queueget", (queue) => {
         $("#queuelength").text(queue.length);
         $("#queue tbody").empty();
-        var markup = "<tr>";
-        for (var i = 0; i < queue.length; i++) {
-            var elem = queue[i];
-            markup += `<td>${elem['username']}</td><td>${elem['message']}</td><td>not implemented</td>`;
+        var markup = "";
+        if (queue.length >= 1) {
+            for (var i = 0; i < queue.length; i++) {
+                var elem = queue[i];
+                markup += `<tr><td>${elem['username']}</td><td>${elem['message']}</td><td>not implemented</td></tr>`;
+            }
+        } else {
+            markup = "<tr><td colspan=\"3\">the queue is empty</td></tr>"
         }
-        markup += `</tr>`;
         $("#queue tbody").append(markup);
     });
 
