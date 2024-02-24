@@ -7,7 +7,7 @@ re_message = re.compile(r'(?<=. : ).*')
 USERNAME = "System"
 BACKSTORY_MAX_LEN = 20
 LOG_MAX_LINES = 250
-SAY_QUESTION_LIKE_FIRST_GRADER = True
+SAY_QUESTION_LIKE_FIRST_GRADER = False
 
 GAMEROOT = "S:/SteamLibrary/steamapps/common/Team Fortress 2"
 MODROOT = "tf"

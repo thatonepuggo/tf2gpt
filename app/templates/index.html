@@ -36,17 +36,19 @@
         <div id="anchor"></div>
     </div>
 </div>
-<div class="grid-item grid3">
+<div class="grid-item grid3" style="overflow: hidden auto;">
     <h1>Queue Length: <span id="queuelength"></span></h1>
-    <table id="queue">
-        <thead>
-            <tr>
-                <th>Username</th>
-                <th>Message</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div class="scroll-fix">
+        <table id="queue">
+            <thead>
+                <tr>
+                    <th style="width:10%;">Username</th>
+                    <th style="width:60%;">Message</th>
+                    <th style="width:30%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}
