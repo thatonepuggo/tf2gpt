@@ -47,6 +47,7 @@ last_text = ""
 kill_switch = False
 game_running = False
 auto_disable_voice = True
+queue = []
 
 def ask(author: str, question: str):
     global chat_memory
@@ -247,7 +248,7 @@ def send_cmd(data: dict):
         return
     
     if cmd_type == "ai":
-        check_commands(client, message)
+        queue.append({"username": USERNAME, "message": message})
     elif cmd_type == "rcon":
         client.run(message)
 
@@ -283,7 +284,19 @@ def run_rcon_thread():
                         if username_match and message_match:
                             username = username_match.group()
                             message = message_match.group().lstrip()
-                            check_commands(client, message, username)
+                            # add message to the end of the queue
+                            if message.startswith(PREFIX):
+                                queue.append({"username": username, "message": message})
+                            
+                    if len(queue) >= 1:
+                        print(queue)
+                        # get oldest message so far
+                        oldest = queue[0]
+                        username = oldest["username"]
+                        message = oldest["message"]
+                        check_commands(client, message, username)
+                        del queue[0]
+                        
                     sleep(REFRESH_TIME)
         except CONNECT_EXCEPTIONS:
             pass

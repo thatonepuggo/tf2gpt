@@ -4,7 +4,7 @@ import rcon
 re_username = re.compile(r'.*(?= :)')
 re_message = re.compile(r'(?<=. : ).*')
 
-USERNAME = "pug"
+USERNAME = "System"
 BACKSTORY_MAX_LEN = 20
 SAY_QUESTION_LIKE_FIRST_GRADER = True
 
