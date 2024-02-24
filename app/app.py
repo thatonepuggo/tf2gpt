@@ -28,6 +28,7 @@ from colorama import Back
 
 from conlog import ConLog
 from config import *
+from aicmd import AICommand
 
 load_dotenv()
 
@@ -48,6 +49,7 @@ kill_switch = False
 game_running = False
 auto_disable_voice = True
 queue = []
+
 
 def ask(author: str, question: str):
     global chat_memory
@@ -89,12 +91,6 @@ You: <your message here>"""
 
 def chunkstring(string, length):
     return (string[0+i:length+i] for i in range(0, len(string), length))
-
-def is_command(message, cmd):
-    return message.lower().split(' ')[0] == f"{PREFIX}{cmd}"
-
-def vb_command(message, cmd):
-    return vb_support and is_command(message, cmd)
 
 # seperate process #
 
@@ -187,44 +183,42 @@ def tts(client: Client, text):
     if auto_disable_voice:
         client.run('-voicerecord')
 
-def ttsask(client: Client, username, args):
+def cmd_backstory(client: Client, username: str, message: str, args: list[str]):
+    global backstory
+    backstory = ' '.join(args[1:])
+    if args[1] == "default":
+        backstory = PROMPT
+    sleep(2)
+    tts(client, f"set backstory to '{backstory if len(backstory) < BACKSTORY_MAX_LEN else f"{backstory[:BACKSTORY_MAX_LEN]} dot dot dot"}'")
+    chat_memory.clear()
+
+def cmd_ttsask(client: Client, username: str, message: str, args: list[str]):
     question = " ".join(args[1:])
     tts(client, f"{username} asks: {', '.join(args[1:]) if SAY_QUESTION_LIKE_FIRST_GRADER else question}. {ask(username, question)}")
-    
-def ttssay(client: Client, username, args):
+
+def cmd_ttssay(client: Client, username: str, message: str, args: list[str]):
     text = ' '.join(args[1:])
     print(Fore.GREEN + text)
     tts(client, text)
-    
-def check_commands(client: Client, message: str, username: str = USERNAME):
-    global chat_memory
-    global backstory 
+
+commands = [
+    AICommand(name="backstory", func=cmd_backstory, min_args=1),
+    AICommand(name="ttsask", func=cmd_ttsask, voice=True),
+    AICommand(name="ttssay", func=cmd_ttssay, voice=True),
+]
+
+def check_commands(client: Client, username: str = USERNAME, message: str = "", run = True):
     if kill_switch:
         return
     args = message.split(' ')
-    #if is_command(message, "ask"):
-    #    print("processing...")
-    #    response = ask(username, message)
-    #    print(response)
-    #    for chunk in chunkstring(response, 127):
-    #        client.run('say', chunk)
-    #        sleep(1)
-    if is_command(message, "backstory"):
-        print(len(args))
-        print(args)
-        if len(args) < 1:
-            print(Fore.RED + "ignored command. too few args")
-            return
-        backstory = ' '.join(args[1:])
-        if args[1] == "default":
-            backstory = PROMPT
-        sleep(2)
-        tts(client, f"set backstory to '{backstory if len(backstory) < BACKSTORY_MAX_LEN else f"{backstory[:BACKSTORY_MAX_LEN]} dot dot dot"}'")
-        chat_memory.clear()
-    elif vb_command(message, "ttsask"):
-        ttsask(client, username, args)
-    elif vb_command(message, "ttssay"):
-        ttssay(client, username, args)
+    for cmd in commands:
+        name = cmd.name
+        can_run = cmd.is_command(message) and (cmd.voice == vb_support)
+        if can_run:
+            if run: # only run the command if run is enabled
+                cmd.exec(client, username, message)
+            return name # otherwise return name
+    return False
 
 @app.route("/")
 def home():
@@ -285,7 +279,7 @@ def run_rcon_thread():
                             username = username_match.group()
                             message = message_match.group().lstrip()
                             # add message to the end of the queue
-                            if message.startswith(PREFIX):
+                            if check_commands(client, username, message, False):
                                 queue.append({"username": username, "message": message})
                             
                     if len(queue) >= 1:
@@ -294,7 +288,7 @@ def run_rcon_thread():
                         oldest = queue[0]
                         username = oldest["username"]
                         message = oldest["message"]
-                        check_commands(client, message, username)
+                        check_commands(client, username, message) # run command
                         del queue[0]
                         
                     sleep(REFRESH_TIME)
