@@ -90,7 +90,7 @@ this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remem
 ---beginning of current chat message---
 {author}: {question}
 You: <your message here>"""
-    print(gen_prompt)
+    #print(gen_prompt)
 
     chat_memory.append(f"{author}: {question}")
     
