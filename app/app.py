@@ -55,9 +55,33 @@ conlog = ConLog(game_root=GAMEROOT, mod_root=MODROOT)
 def ask(author: str, question: str):
     global backstory
     global chat_memory
+    global client
     chat_memory = chat_memory[-20:]
     memory_string = '\n'.join(chat_memory)
+    #client.run("__begin_status_output__")
+    #client.run("status")
+    #sleep(1)
+    #client.run("__end_status_output__")
+    #recording = False
+    #status = ""
+    #sleep(2)
+    #newlines = conlog.readnewlines()
+    #for line in newlines:
+    #    print(line)
+    #    if "Unknown command: __begin_status_output__" in line:
+    #        recording = True
+    #    elif "Unknown command: __end_status_output__" in line:
+    #        recording = False
+    #    if recording:
+    #        status += line + "\n"
+    """
+    here is your conversation info. it includes the name of the server, and who is in it. it also includes the time they've been here.
+    ---beginning of conversation info, use this as reference---
+    {util.filter_status(status)}
+    ---end of conversation info---
+    """
     gen_prompt = f"""{backstory}
+
 here is your current chat history, use this to remember context from earlier. (if 'You' said this, you said this. Otherwise, that was a user.).
 this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remember you saying this some time ago." if it isn't acutally in history, dont say it.
 ---beginning of your chat history, use this as memory.---
@@ -66,6 +90,7 @@ this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remem
 ---beginning of current chat message---
 {author}: {question}
 You: <your message here>"""
+    print(gen_prompt)
 
     chat_memory.append(f"{author}: {question}")
     
@@ -191,10 +216,17 @@ def cmd_backstory(client: Client, username: str, message: str, args: list[str]):
     if args[1] == "default":
         backstory = PROMPT
     sleep(2)
-    tts(client, f"set backstory to '{backstory if len(backstory) < BACKSTORY_MAX_LEN else f"{backstory[:BACKSTORY_MAX_LEN]} dot dot dot"}'")
+    trimmed_backstory = backstory if len(backstory) < BACKSTORY_MAX_LEN else f"{backstory[:BACKSTORY_MAX_LEN]} dot dot dot"
+    print(f"{Fore.CYAN}set backstory to {backstory}")
+    tts(client, f"set backstory to '{trimmed_backstory} ")
     chat_memory.clear()
 
 def cmd_ttsask(client: Client, username: str, message: str, args: list[str]):
+    global auto_disable_voice
+    client.run('+voicerecord')
+    play_audio(PROCESSING_SND)
+    if auto_disable_voice:
+        client.run('-voicerecord')
     question = " ".join(args[1:])
     tts(client, f"{username} asks: {', '.join(args[1:]) if SAY_QUESTION_LIKE_FIRST_GRADER else question}. {ask(username, question)}")
 

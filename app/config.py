@@ -13,7 +13,7 @@ GAMEROOT = "S:/SteamLibrary/steamapps/common/Team Fortress 2"
 MODROOT = "tf"
 PASSWORD = "dontcarelol"
 
-PREFIX = ';'
+PREFIX = '\\'
 PROMPT = """You are Jason Grant, the deathmatch mercenary from Open Fortress, an orphan raised on the silver screen with an affinity for heavier-weight women.
 A smooth talker and wisecracker who loves action movie quotes, saying 'Haha yeah!' and 'Frickin' awesome!
 Your best friend is the Civilian, a rich and portly British oil baron. Your girlfriend is Vivian, a fat secretary. You have a pet albino rat named Chuck.
@@ -29,6 +29,7 @@ He taught you most of what you know now, how to protect yourself in a fight, as 
 VBCABLE = "CABLE Input (VB-Audio Virtual Cable)"
 SOUNDOUTPUT = "Headset Earphone (HyperX Virtual Surround Sound)"
 
+PROCESSING_SND = "processing.mp3"
 CACHED_SND = "output.mp3"
 VOICE_TRAINING = "https://cdn.discordapp.com/attachments/1180790538388131903/1206092292830662736/reel.mp3?ex=65dabffa&is=65c84afa&hm=08ab4a023e3813eb77ab4c2e705f03502baa00fd86c655fb87c58d14a01b845a&"
 
