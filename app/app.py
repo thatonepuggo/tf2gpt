@@ -94,9 +94,6 @@ You: <your message here>"""
     print(Fore.GREEN + full + "\n")
     return full
 
-def chunkstring(string, length):
-    return (string[0+i:length+i] for i in range(0, len(string), length))
-
 # seperate process #
 
 player = vlc.MediaPlayer()
@@ -302,7 +299,9 @@ def run_rcon_thread():
         try:
             with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
                 while True:
-                            
+                    if kill_switch:
+                        continue
+                    
                     if len(queue) >= 1:
                         # get oldest message so far
                         oldest = queue.pop(0)
