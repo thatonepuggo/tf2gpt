@@ -217,7 +217,7 @@ def cmd_backstory(client: Client, username: str, message: str, args: list[str]):
         backstory = PROMPT
     sleep(2)
     trimmed_backstory = backstory if len(backstory) < BACKSTORY_MAX_LEN else f"{backstory[:BACKSTORY_MAX_LEN]} dot dot dot"
-    print(f"{Fore.CYAN}set backstory to {backstory}")
+    print(f"{Fore.CYAN}set backstory: {backstory}")
     tts(client, f"set backstory to '{trimmed_backstory} ")
     chat_memory.clear()
 
