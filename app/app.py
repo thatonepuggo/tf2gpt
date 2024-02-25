@@ -34,6 +34,7 @@ load_dotenv()
 
 #socketio = SocketIO
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, async_mode="threading")
 
 backstory = PROMPT

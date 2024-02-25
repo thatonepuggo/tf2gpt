@@ -14,7 +14,6 @@
 
 body {
     background-image: url("/static/oak.png");
-
     box-sizing: border-box;
 }
 
@@ -23,6 +22,7 @@ input {
     color: black;
 }
 
+/* TABLE */
 table {
     width: 100%;
     height: fit-content;
@@ -30,14 +30,17 @@ table {
 
 td, th {
     background-color: var(--col-console);
-    border-width: 2px;
     border-color: var(--col-border);
+    border-width: 2px;
+    line-height: 25px;
 }
 
 tr:nth-child(even) {
     background-color: var(--col-console-darker);
 }
+/* END TABLE */
 
+/* BEGIN GRID */
 .grid-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -55,20 +58,7 @@ tr:nth-child(even) {
     padding: 10px;
     background-color: var(--col-bg);
 }
-
-.scroll-fix {
-    overflow: hidden auto;
-    max-height: 100%;
-}
-
-#scroller * {
-    overflow-anchor: none;
-}
-
-#anchor {
-    overflow-anchor: auto;
-    height: 1px;
-}
+/* END GRID */
 
 .consolebox {
     background-color: var(--col-console);
@@ -78,6 +68,17 @@ tr:nth-child(even) {
     height: 300px;
     padding: 10px;
     overflow: auto;
+}
+
+/* BEGIN IDS */
+
+#scroller * {
+    overflow-anchor: none;
+}
+
+#anchor {
+    overflow-anchor: auto;
+    height: 1px;
 }
 
 #consoleBox {
