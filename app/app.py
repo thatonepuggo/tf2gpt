@@ -52,19 +52,6 @@ auto_disable_voice = True
 queue = []
 conlog = ConLog(game_root=GAMEROOT, mod_root=MODROOT)
 
-tts_translations = {
-    "words": {
-        "?": "question mark",
-        "!": "exclamation mark",
-        ",": "comma",
-        ".": "dot",
-        ";": "semicolon",
-        ":": "colon",
-        "|": "pipe",
-        "ß": "es zett",
-    }
-}
-
 def ask(author: str, question: str):
     global backstory
     global chat_memory
@@ -203,7 +190,7 @@ def tts(client: Client, text):
         
         # translate the text
         translated_text = text
-        words = tts_translations.get("words", {})
+        words = TTS_TRANSLATIONS.get("words", {})
         for word, replacement in words.items():
             pattern = re.compile(r'(^|\s){}(\s|$)'.format(re.escape(word)))
             translated_text = pattern.sub(r'\1{}\2'.format(replacement), translated_text)

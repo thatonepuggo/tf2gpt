@@ -37,4 +37,17 @@ REFRESH_TIME = 1
 CONNECTION_CHECK_TIME = 5
 
 
+TTS_TRANSLATIONS = {
+    "words": {
+        "?": "question mark",
+        "!": "exclamation mark",
+        ",": "comma",
+        ".": "dot",
+        ";": "semicolon",
+        ":": "colon",
+        "|": "pipe",
+        "ß": "es zett",
+    }
+}
+
 CONNECT_EXCEPTIONS = (ConnectionRefusedError, ConnectionResetError, rcon.SessionTimeout, rcon.WrongPassword, rcon.EmptyResponse)
