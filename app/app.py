@@ -52,6 +52,17 @@ auto_disable_voice = True
 queue = []
 conlog = ConLog(game_root=GAMEROOT, mod_root=MODROOT)
 
+tts_translations = {
+    "words": {
+        "?": "question mark",
+        "!": "exclamation mark",
+        ",": "comma",
+        ".": "dot",
+        ";": "semicolon",
+        ":": "colon",
+    }
+}
+
 def ask(author: str, question: str):
     global backstory
     global chat_memory
@@ -61,7 +72,7 @@ def ask(author: str, question: str):
     #client.run("__begin_status_output__")
     #client.run("status")
     #sleep(1)
-    #client.run("__end_status_output__")
+    #client.run("__end_staftus_output__")
     #recording = False
     #status = ""
     #sleep(2)
@@ -188,7 +199,18 @@ def tts(client: Client, text):
         #with open(CACHED_SND, "wb") as f:
         #    f.write(response.content)
         
-        tts = gTTS(text=text, lang='en', tld="co.uk", slow=False)
+        # translate the text
+        translated_text = text
+        words = tts_translations.get("words", {})
+        for word, replacement in words.items():
+            pattern = re.compile(r'(^|\s){}(\s|$)'.format(re.escape(word)))
+            translated_text = pattern.sub(r'\1{}\2'.format(replacement), translated_text)
+        
+        print(translated_text)
+        tts = gTTS(text=translated_text, lang='en', tld="co.uk", slow=False)
+        #engine = pyttsx3.init()
+        #engine.save_to_file(text, CACHED_SND)
+        #engine.runAndWait()
         try:
             os.remove(CACHED_SND)
         except FileNotFoundError:
