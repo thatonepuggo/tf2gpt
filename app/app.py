@@ -208,7 +208,6 @@ def tts(client: Client, text):
             pattern = re.compile(r'(^|\s){}(\s|$)'.format(re.escape(word)))
             translated_text = pattern.sub(r'\1{}\2'.format(replacement), translated_text)
         
-        print(translated_text)
         tts = gTTS(text=translated_text, lang='en', tld="co.uk", slow=False)
         #engine = pyttsx3.init()
         #engine.save_to_file(text, CACHED_SND)
