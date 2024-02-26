@@ -313,7 +313,7 @@ def queue_action(data: dict):
         queue = util.swap(queue, index, index + 1)
     elif action == 3: # send to top
         del queue[index]
-        queue.insert(1, item)
+        queue.insert(0, item)
     elif action == 4: # send to back
         del queue[index]
         queue.insert(len(queue) + 1, item)
