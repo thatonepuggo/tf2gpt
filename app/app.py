@@ -60,6 +60,8 @@ tts_translations = {
         ".": "dot",
         ";": "semicolon",
         ":": "colon",
+        "|": "pipe",
+        "ß": "es zett",
     }
 }
 
