@@ -238,7 +238,7 @@ def cmd_ttsask(client: Client, username: str, message: str, args: list[str]):
     if auto_disable_voice:
         client.run('-voicerecord')
     question = " ".join(args[1:])
-    tts(client, f"{username} asks: {', '.join(args[1:]) if SAY_QUESTION_LIKE_FIRST_GRADER else question}. {ask(username, question)}")
+    tts(client, f"{username} asks: {', '.join(args[1:]) if SAY_QUESTION_LIKE_FIRST_GRADER else question}: {ask(username, question)}")
 
 def cmd_ttssay(client: Client, username: str, message: str, args: list[str]):
     text = ' '.join(args[1:])
