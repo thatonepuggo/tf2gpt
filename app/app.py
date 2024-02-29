@@ -1,4 +1,5 @@
 import multiprocessing
+import re
 import sys
 from time import sleep
 import os
@@ -26,7 +27,7 @@ from colorama import Fore
 from colorama import Back
 
 from conlog import ConLog
-from config import *
+from config import ConfigFile
 from aicmd import AICommand
 import util
 
@@ -37,10 +38,19 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, async_mode="threading")
 
-backstory = PROMPT
+# config #
+conf = ConfigFile()
+
+backstory = conf.data["prompt"]
 
 chat_memory = []
 vb_support = True
+
+# constants #
+re_username = re.compile(r'.*(?= :)')
+re_message = re.compile(r'(?<=. : ).*')
+
+CONNECT_EXCEPTIONS = (ConnectionRefusedError, ConnectionResetError, rcon.SessionTimeout, rcon.WrongPassword, rcon.EmptyResponse)
 
 # globals #
 global client
@@ -50,7 +60,7 @@ kill_switch = False
 game_running = False
 auto_disable_voice = True
 queue = []
-conlog = ConLog(game_root=GAMEROOT, mod_root=MODROOT)
+conlog = ConLog(game_root=conf.data["gameroot"], mod_root=conf.data["modroot"])
 
 def ask(author: str, question: str):
     global backstory
@@ -88,7 +98,7 @@ this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remem
 {memory_string}
 ---end of your chat history---
 ---beginning of current chat message---
-{author}: {question}
+[INST] {author}: {question} [/INST]
 You: <your message here>"""
     #print(gen_prompt)
 
@@ -157,8 +167,8 @@ def _quick_play(devicename, file):
 # end seperate process #
 
 def play_audio(file):
-    inp = multiprocessing.Process(target=_quick_play, args=[VBCABLE, file], daemon=True) 
-    out = multiprocessing.Process(target=_quick_play, args=[SOUNDOUTPUT, file], daemon=True)
+    inp = multiprocessing.Process(target=_quick_play, args=[conf.data["vbcable"], file], daemon=True) 
+    out = multiprocessing.Process(target=_quick_play, args=[conf.data["soundoutput"], file], daemon=True)
     
     inp.start()
     out.start()
@@ -179,44 +189,44 @@ def tts(client: Client, text):
         #output = replicate.run(
         #    "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
         #    input={
-        #        "speaker": VOICE_TRAINING,
+        #        "speaker": conf.data["voice_training"],
         #        "text": text
         #    }
         #)
         
         #response = requests.get(output, allow_redirects=True)
-        #with open(CACHED_SND, "wb") as f:
+        #with open(conf.data["cached_snd"], "wb") as f:
         #    f.write(response.content)
         
         # translate the text
         translated_text = text
-        words = TTS_TRANSLATIONS.get("words", {})
+        words = conf.data["tts_translations"].get("words", {})
         for word, replacement in words.items():
             pattern = re.compile(r'(^|\s){}(\s|$)'.format(re.escape(word)))
             translated_text = pattern.sub(r'\1{}\2'.format(replacement), translated_text)
         
         tts = gTTS(text=translated_text, lang='en', tld="co.uk", slow=False)
         #engine = pyttsx3.init()
-        #engine.save_to_file(text, CACHED_SND)
+        #engine.save_to_file(text, conf.data["cached_snd"])
         #engine.runAndWait()
         try:
-            os.remove(CACHED_SND)
+            os.remove(conf.data["cached_snd"])
         except FileNotFoundError:
             print(Fore.RED + "file does not exist, skipping removal.")
-        tts.save(CACHED_SND)
+        tts.save(conf.data["cached_snd"])
         last_text = text
     else:
         print(Fore.RED + "using cached sound")
     
     client.run('+voicerecord')
-    play_audio(CACHED_SND)
-    #mixer.music.load(CACHED_SND)
+    play_audio(conf.data["cached_snd"])
+    #mixer.music.load(conf.data["cached_snd"])
     #sleep(0.1)
     #mixer.music.play()
     #while mixer.music.get_busy():
     #    pass
     #mixer.quit()
-    #mixer.init(devicename = VBCABLE)
+    #mixer.init(devicename = conf.data["vbcable"])
     if auto_disable_voice:
         client.run('-voicerecord')
 
@@ -224,9 +234,9 @@ def cmd_backstory(client: Client, username: str, message: str, args: list[str]):
     global backstory
     backstory = ' '.join(args[1:])
     if args[1] == "default":
-        backstory = PROMPT
+        backstory = conf.data["prompt"]
     sleep(2)
-    trimmed_backstory = backstory if len(backstory) < BACKSTORY_MAX_LEN else f"{backstory[:BACKSTORY_MAX_LEN]} dot dot dot"
+    trimmed_backstory = backstory if len(backstory) < conf.data["backstory_max_len"] else f"{backstory[:conf.data["backstory_max_len"]]} dot dot dot"
     print(f"{Fore.CYAN}set backstory: {backstory}")
     tts(client, f"set backstory to '{trimmed_backstory} ")
     chat_memory.clear()
@@ -234,11 +244,11 @@ def cmd_backstory(client: Client, username: str, message: str, args: list[str]):
 def cmd_ttsask(client: Client, username: str, message: str, args: list[str]):
     global auto_disable_voice
     client.run('+voicerecord')
-    play_audio(PROCESSING_SND)
+    play_audio(conf.data["processing_snd"])
     if auto_disable_voice:
         client.run('-voicerecord')
     question = " ".join(args[1:])
-    tts(client, f"{username} asks: {', '.join(args[1:]) if SAY_QUESTION_LIKE_FIRST_GRADER else question}: {ask(username, question)}")
+    tts(client, f"{username} asks: {', '.join(args[1:]) if conf.data["say_question_like_first_grader"] else question}: {ask(username, question)}")
 
 def cmd_ttssay(client: Client, username: str, message: str, args: list[str]):
     text = ' '.join(args[1:])
@@ -251,7 +261,7 @@ commands = [
     AICommand(name="ttssay", aliases=["say", "tsay", "ttsay"], func=cmd_ttssay, min_args=1, voice=True),
 ]
 
-def check_commands(client: Client, username: str = USERNAME, message: str = "", run = True):
+def check_commands(client: Client, username: str = conf.data["username"], message: str = "", run = True):
     if kill_switch:
         return
     args = message.split(' ')
@@ -273,7 +283,7 @@ def home():
     
     if not game_running:
         return render_template('err.html', error="game_not_running")
-    return render_template('index.html', refreshTime=REFRESH_TIME, killSwitch=kill_switch, autoDisableVoice=auto_disable_voice)
+    return render_template('index.html', refreshTime=conf.data["refresh_time"], killSwitch=kill_switch, autoDisableVoice=auto_disable_voice)
 
 @socketio.on("send_cmd")
 def send_cmd(data: dict):
@@ -288,7 +298,7 @@ def send_cmd(data: dict):
         return
     
     if cmd_type == "ai":
-        queue.insert(0, {"username": USERNAME, "message": message})
+        queue.insert(0, {"username": conf.data["username"], "message": message})
     elif cmd_type == "rcon":
         client.run(message)
         
@@ -339,7 +349,7 @@ def run_rcon_thread():
     global conlog
     while True:
         try:
-            with Client('127.0.0.1', 27015, passwd=PASSWORD) as client:
+            with Client('127.0.0.1', 27015, passwd=conf.data["password"]) as client:
                 while True:
                     if kill_switch:
                         continue
@@ -351,7 +361,7 @@ def run_rcon_thread():
                         message = oldest["message"]
                         check_commands(client, username, message) # run command
                         
-                    sleep(REFRESH_TIME)
+                    sleep(conf.data["refresh_time"])
         except CONNECT_EXCEPTIONS:
             pass
 
@@ -366,17 +376,17 @@ def run_rcon_try_thread():
     global game_running
     while True:
         try:
-            with Client('127.0.0.1', 27015, passwd=PASSWORD) as try_client:
+            with Client('127.0.0.1', 27015, passwd=conf.data["password"]) as try_client:
                 game_running = True
         except CONNECT_EXCEPTIONS:
             game_running = False
-        sleep(CONNECTION_CHECK_TIME)
+        sleep(conf.data["connection_check_time"])
         
 def run_rcon_ping_thread():
     global conlog
     while True:
         try:
-            with Client('127.0.0.1', 27015, passwd=PASSWORD) as ping_client:
+            with Client('127.0.0.1', 27015, passwd=conf.data["password"]) as ping_client:
                 while True:
                     # update the queue
                     new = conlog.readnewlines()
@@ -393,23 +403,23 @@ def run_rcon_ping_thread():
                                 queue.append({"username": username, "message": message})
                                 
                     # send the log
-                    escaped_log = util.remove_lines(conlog.read(), LOG_MAX_LINES)
+                    escaped_log = util.remove_lines(conlog.read(), conf.data["log_max_lines"])
                     escaped_log = util.escape_markup(escaped_log)
                     socketio.emit("consoleget", escaped_log)
 
                     # send the queue
                     send_queue()
-                    sleep(REFRESH_TIME)
+                    sleep(conf.data["refresh_time"])
                     
         except CONNECT_EXCEPTIONS:
             pass
 
 if __name__ == '__main__':
     init(autoreset=True)
-    mixer.pre_init(devicename = VBCABLE)
+    mixer.pre_init(devicename = conf.data["vbcable"])
     mixer.init()
 
-    if not VBCABLE in device.audio.get_audio_device_names(False):
+    if not conf.data["vbcable"] in device.audio.get_audio_device_names(False):
         print(Fore.RED + "To use voice-related AI commands, please get Virtual Audio Cable: https://vb-audio.com/Cable/.")
         vb_support = False
     else:

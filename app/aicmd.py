@@ -1,6 +1,9 @@
 from rcon import Client
 from config import *
 from typing import Callable
+from config import ConfigFile
+
+conf = ConfigFile()
 
 class AICommand:
     name: str
@@ -18,7 +21,7 @@ class AICommand:
     
     # singular check for a name
     def _is_check(self, message, cmdname):
-        return message.lower().split(' ')[0] == f"{PREFIX}{cmdname}"
+        return message.lower().split(' ')[0] == f"{conf.data["prefix"]}{cmdname}"
     
     def is_command(self, message):
         # check the main name
@@ -31,7 +34,7 @@ class AICommand:
         return False
             
     
-    def exec(self, client: Client, username: str = USERNAME, message: str = ""):
+    def exec(self, client: Client, username: str = conf.data["username"], message: str = ""):
         args = message.split(' ')
         if len(args) >= self.min_args:
             return self.func(client, username, message, args)

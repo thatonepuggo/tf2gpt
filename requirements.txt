@@ -6,6 +6,6 @@ MarkupSafe==2.1.4
 pygame==2.5.2
 python-dotenv==1.0.1
 python_vlc==3.0.20123
+PyYAML==6.0.1
 rcon==2.4.4
 replicate==0.23.1
-Requests==2.31.0
