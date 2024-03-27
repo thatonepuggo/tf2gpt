@@ -8,7 +8,8 @@ modroot: tf
 password: dontcarelol
 
 prefix: \\
-prompt: You are Jason Grant, the deathmatch mercenary from Open Fortress, an orphan raised on the silver screen with an affinity for heavier-weight women.
+prompt:
+  You are Jason Grant, the deathmatch mercenary from Open Fortress, an orphan raised on the silver screen with an affinity for heavier-weight women.
   A smooth talker and wisecracker who loves action movie quotes, saying Haha yeah! and Frickin awesome!
   Your best friend is the Civilian, a rich and portly British oil baron. Your girlfriend is Vivian, a fat secretary. You have a pet albino rat named Chuck.
   A friend from long ago, Merv, is the one who introduced you to the world of deathmatch.
@@ -16,6 +17,7 @@ prompt: You are Jason Grant, the deathmatch mercenary from Open Fortress, an orp
 
 vbcable: CABLE Input (VB-Audio Virtual Cable)
 soundoutput: Headset Earphone (HyperX Virtual Surround Sound)
+default_volume: 100
 
 processing_snd: processing.mp3
 cached_snd: output.mp3
@@ -26,11 +28,11 @@ connection_check_time: 5
 
 tts_translations:
   words:
-    '?': question mark
-    '!': exclamation mark
-    ',': comma
-    '.': dot
-    ';': semicolon
-    ':': colon
-    '|': pipe
-    'ß': es zett
+    "?": question mark
+    "!": exclamation mark
+    ",": comma
+    ".": dot
+    ";": semicolon
+    ":": colon
+    "|": pipe
+    "ß": es zett

@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 import rcon
 from rcon.source import Client
 
-import replicate
+#import replicate
 from pygame import mixer
 from pygame import _sdl2 as device
 import vlc
@@ -27,21 +27,56 @@ from colorama import Fore
 from colorama import Back
 
 from conlog import ConLog
-from config import ConfigFile
+from config import config
 from aicmd import AICommand
+from soundplayer import SoundPlayer
 import util
 
+import textwrap
+import google.generativeai as genai
+
+from IPython.display import display
+from IPython.display import Markdown
+from dotenv import load_dotenv
+
 load_dotenv()
+
+# Or use `os.getenv('GOOGLE_API_KEY')` to fetch an environment variable.
+GOOGLE_API_KEY=os.getenv('GOOGLE_API_KEY')
+
+genai.configure(api_key=GOOGLE_API_KEY)
+
+safety_settings = [
+    {
+        "category": "HARM_CATEGORY_DANGEROUS",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_HARASSMENT",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_HATE_SPEECH",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+        "threshold": "BLOCK_NONE",
+    },
+]
+
+model = genai.GenerativeModel('gemini-pro', safety_settings)
 
 #socketio = SocketIO
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, async_mode="threading")
 
-# config #
-conf = ConfigFile()
-
-backstory = conf.data["prompt"]
+backstory = config.data["prompt"]
 
 chat_memory = []
 vb_support = True
@@ -60,7 +95,12 @@ kill_switch = False
 game_running = False
 auto_disable_voice = True
 queue = []
-conlog = ConLog(game_root=conf.data["gameroot"], mod_root=conf.data["modroot"])
+conlog = ConLog(game_root=config.data["gameroot"], mod_root=config.data["modroot"])
+sp = SoundPlayer()
+
+def to_markdown(text):
+  text = text.replace('•', '  *')
+  return Markdown(textwrap.indent(text, '> ', predicate=lambda _: True))
 
 def ask(author: str, question: str):
     global backstory
@@ -84,6 +124,12 @@ def ask(author: str, question: str):
     #        recording = False
     #    if recording:
     #        status += line + "\n"
+    
+    #status = conlog.status(client)
+    #print(status)
+    
+    #return "hold up"
+    
     """
     here is your conversation info. it includes the name of the server, and who is in it. it also includes the time they've been here.
     ---beginning of conversation info, use this as reference---
@@ -107,6 +153,7 @@ You: <your message here>"""
     # print question
     print(f"{Back.CYAN}{author}{Back.RESET}{Fore.CYAN}: {question}")
     
+    """
     message = replicate.run(
         "meta/llama-2-70b-chat",
         input={
@@ -120,7 +167,11 @@ You: <your message here>"""
             "min_new_tokens": -1
         },
     )
-    full = ''.join(message)
+    """
+
+    response = model.generate_content("talk in first person unless the following backstory says not to: " + "\n" + backstory + "\n" + question)
+
+    full = response.text
     
     full = re.sub("^you: ?", "", full, flags=re.RegexFlag.IGNORECASE) # check if message starts with you:
     full = re.sub("^[\"\']|[\"\']$", "", full) # check if message has quotes at beginning and end
@@ -129,126 +180,68 @@ You: <your message here>"""
     print(Fore.GREEN + full + "\n")
     return full
 
-# seperate process #
-
-player = vlc.MediaPlayer()
-
-# Get list of output devices
-def get_device(devicename):
-    mods = player.audio_output_device_enum()
-    if mods:
-        mod = mods
-        while mod:
-            mod = mod.contents
-            # If device is found, return its module and device id
-            if devicename in str(mod.description):
-                device = mod.device
-                module = mod.description
-                return device,module
-            mod = mod.next
-
-def _quick_play(devicename, file):
-    #mixer.pre_init(devicename=devicename)
-    #mixer.init()
-    #mixer.music.load(file)
-    #mixer.music.play()
-    #while mixer.music.get_busy():
-    #    pass
-    #mixer.quit()
-    device, module = get_device(devicename)
-    media = vlc.Media(file)
-    player.set_media(media)
-    
-    player.audio_output_device_set(None, device)
-    player.play()
-    while player.get_state() != 6: # ended
-        pass
-
-# end seperate process #
-
-def play_audio(file):
-    inp = multiprocessing.Process(target=_quick_play, args=[conf.data["vbcable"], file], daemon=True) 
-    out = multiprocessing.Process(target=_quick_play, args=[conf.data["soundoutput"], file], daemon=True)
-    
-    inp.start()
-    out.start()
-    
-    while inp.is_alive() and out.is_alive():
-        if kill_switch:
-            inp.kill()
-            out.kill()
-            break
-
 def tts(client: Client, text):
     if text.strip() == "":
         print(f"{Fore.RED}Empty prompt in '{text}'")
         return
     global last_text
-    global auto_disable_voice
     if text != last_text:
         #output = replicate.run(
         #    "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
         #    input={
-        #        "speaker": conf.data["voice_training"],
+        #        "speaker": config.data["voice_training"],
         #        "text": text
         #    }
         #)
         
         #response = requests.get(output, allow_redirects=True)
-        #with open(conf.data["cached_snd"], "wb") as f:
+        #with open(config.data["cached_snd"], "wb") as f:
         #    f.write(response.content)
         
         # translate the text
         translated_text = text
-        words = conf.data["tts_translations"].get("words", {})
+        words = config.data["tts_translations"].get("words", {})
         for word, replacement in words.items():
             pattern = re.compile(r'(^|\s){}(\s|$)'.format(re.escape(word)))
             translated_text = pattern.sub(r'\1{}\2'.format(replacement), translated_text)
         
         tts = gTTS(text=translated_text, lang='en', tld="co.uk", slow=False)
         #engine = pyttsx3.init()
-        #engine.save_to_file(text, conf.data["cached_snd"])
+        #engine.save_to_file(text, config.data["cached_snd"])
         #engine.runAndWait()
         try:
-            os.remove(conf.data["cached_snd"])
+            os.remove(config.data["cached_snd"])
         except FileNotFoundError:
             print(Fore.RED + "file does not exist, skipping removal.")
-        tts.save(conf.data["cached_snd"])
+        tts.save(config.data["cached_snd"])
         last_text = text
     else:
         print(Fore.RED + "using cached sound")
     
-    client.run('+voicerecord')
-    play_audio(conf.data["cached_snd"])
-    #mixer.music.load(conf.data["cached_snd"])
+    sp.play(client, config.data["cached_snd"])
+    #mixer.music.load(config.data["cached_snd"])
     #sleep(0.1)
     #mixer.music.play()
     #while mixer.music.get_busy():
     #    pass
     #mixer.quit()
-    #mixer.init(devicename = conf.data["vbcable"])
-    if auto_disable_voice:
-        client.run('-voicerecord')
+    #mixer.init(devicename = config.data["vbcable"])
 
 def cmd_backstory(client: Client, username: str, message: str, args: list[str]):
     global backstory
     backstory = ' '.join(args[1:])
     if args[1] == "default":
-        backstory = conf.data["prompt"]
+        backstory = config.data["prompt"]
     sleep(2)
-    trimmed_backstory = backstory if len(backstory) < conf.data["backstory_max_len"] else f"{backstory[:conf.data["backstory_max_len"]]} dot dot dot"
+    trimmed_backstory = backstory if len(backstory) < config.data["backstory_max_len"] else f"{backstory[:config.data["backstory_max_len"]]} dot dot dot"
     print(f"{Fore.CYAN}set backstory: {backstory}")
     tts(client, f"set backstory to '{trimmed_backstory} ")
     chat_memory.clear()
 
 def cmd_ttsask(client: Client, username: str, message: str, args: list[str]):
-    global auto_disable_voice
-    client.run('+voicerecord')
-    play_audio(conf.data["processing_snd"])
-    if auto_disable_voice:
-        client.run('-voicerecord')
+    sp.play(client, config.data["processing_snd"])
     question = " ".join(args[1:])
-    tts(client, f"{username} asks: {', '.join(args[1:]) if conf.data["say_question_like_first_grader"] else question}: {ask(username, question)}")
+    tts(client, f"{username} asks: {', '.join(args[1:]) if config.data["say_question_like_first_grader"] else question}: {ask(username, question)}")
 
 def cmd_ttssay(client: Client, username: str, message: str, args: list[str]):
     text = ' '.join(args[1:])
@@ -261,7 +254,7 @@ commands = [
     AICommand(name="ttssay", aliases=["say", "tsay", "ttsay"], func=cmd_ttssay, min_args=1, voice=True),
 ]
 
-def check_commands(client: Client, username: str = conf.data["username"], message: str = "", run = True):
+def check_commands(client: Client, username: str = config.data["username"], message: str = "", run = True):
     if kill_switch:
         return
     args = message.split(' ')
@@ -283,7 +276,7 @@ def home():
     
     if not game_running:
         return render_template('err.html', error="game_not_running")
-    return render_template('index.html', refreshTime=conf.data["refresh_time"], killSwitch=kill_switch, autoDisableVoice=auto_disable_voice)
+    return render_template('index.html', refreshTime=config.data["refresh_time"], killSwitch=kill_switch, autoDisableVoice=auto_disable_voice)
 
 @socketio.on("send_cmd")
 def send_cmd(data: dict):
@@ -298,7 +291,7 @@ def send_cmd(data: dict):
         return
     
     if cmd_type == "ai":
-        queue.insert(0, {"username": conf.data["username"], "message": message})
+        queue.insert(0, {"username": config.data["username"], "message": message})
     elif cmd_type == "rcon":
         client.run(message)
         
@@ -349,7 +342,7 @@ def run_rcon_thread():
     global conlog
     while True:
         try:
-            with Client('127.0.0.1', 27015, passwd=conf.data["password"]) as client:
+            with Client('127.0.0.1', 27015, passwd=config.data["password"]) as client:
                 while True:
                     if kill_switch:
                         continue
@@ -361,7 +354,7 @@ def run_rcon_thread():
                         message = oldest["message"]
                         check_commands(client, username, message) # run command
                         
-                    sleep(conf.data["refresh_time"])
+                    sleep(config.data["refresh_time"])
         except CONNECT_EXCEPTIONS:
             pass
 
@@ -376,17 +369,17 @@ def run_rcon_try_thread():
     global game_running
     while True:
         try:
-            with Client('127.0.0.1', 27015, passwd=conf.data["password"]) as try_client:
+            with Client('127.0.0.1', 27015, passwd=config.data["password"]) as try_client:
                 game_running = True
         except CONNECT_EXCEPTIONS:
             game_running = False
-        sleep(conf.data["connection_check_time"])
+        sleep(config.data["connection_check_time"])
         
 def run_rcon_ping_thread():
     global conlog
     while True:
         try:
-            with Client('127.0.0.1', 27015, passwd=conf.data["password"]) as ping_client:
+            with Client('127.0.0.1', 27015, passwd=config.data["password"]) as ping_client:
                 while True:
                     # update the queue
                     new = conlog.readnewlines()
@@ -403,23 +396,23 @@ def run_rcon_ping_thread():
                                 queue.append({"username": username, "message": message})
                                 
                     # send the log
-                    escaped_log = util.remove_lines(conlog.read(), conf.data["log_max_lines"])
+                    escaped_log = util.remove_lines(conlog.read(), config.data["log_max_lines"])
                     escaped_log = util.escape_markup(escaped_log)
                     socketio.emit("consoleget", escaped_log)
 
                     # send the queue
                     send_queue()
-                    sleep(conf.data["refresh_time"])
+                    sleep(config.data["refresh_time"])
                     
         except CONNECT_EXCEPTIONS:
             pass
 
 if __name__ == '__main__':
     init(autoreset=True)
-    mixer.pre_init(devicename = conf.data["vbcable"])
+    mixer.pre_init(devicename = config.data["vbcable"])
     mixer.init()
 
-    if not conf.data["vbcable"] in device.audio.get_audio_device_names(False):
+    if not config.data["vbcable"] in device.audio.get_audio_device_names(False):
         print(Fore.RED + "To use voice-related AI commands, please get Virtual Audio Cable: https://vb-audio.com/Cable/.")
         vb_support = False
     else:

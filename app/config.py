@@ -20,6 +20,7 @@ He taught you most of what you know now, how to protect yourself in a fight, as 
         
         "vbcable": "CABLE Input (VB-Audio Virtual Cable)",
         "soundoutput": "Headset Earphone (HyperX Virtual Surround Sound)",
+        "default_volume": 100,
         
         "processing_snd": "processing.mp3",
         "cached_snd": "output.mp3",
@@ -43,12 +44,25 @@ He taught you most of what you know now, how to protect yourself in a fight, as 
     
     def __init__(self, config_file: str = "app/config.yaml"):
         self.config_file = config_file
-    
+        with open(self.config_file, "r") as conf:
+            self._config = yaml.load(conf, yaml.Loader)
+
     @property
     def data(self):
-        with open(self.config_file, 'r') as conf:
-            ret = yaml.load(conf, yaml.Loader)
-        if type(ret) != dict:
+        ret = self._config
+        if not isinstance(ret, dict):
             return self.DEFAULTS
         ret = self.DEFAULTS | ret
         return ret
+    
+    @property
+    def keys_regex(self):
+        """
+        a regex that matches all of the keys in the DEFAULTS list.
+        """
+        ret = []
+        for key in self.DEFAULTS.keys():
+            ret.append(key)
+        return f"({"|".join(ret)})"
+
+config = ConfigFile()
