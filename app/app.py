@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 import rcon
 from rcon.source import Client
 
-#import replicate
+import replicate
 from pygame import mixer
 from pygame import _sdl2 as device
 import vlc
@@ -33,7 +33,7 @@ from soundplayer import SoundPlayer
 import util
 
 import textwrap
-import google.generativeai as genai
+#import google.generativeai as genai
 
 from IPython.display import display
 from IPython.display import Markdown
@@ -42,34 +42,34 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Or use `os.getenv('GOOGLE_API_KEY')` to fetch an environment variable.
-GOOGLE_API_KEY=os.getenv('GOOGLE_API_KEY')
-
-genai.configure(api_key=GOOGLE_API_KEY)
-
-safety_settings = [
-    {
-        "category": "HARM_CATEGORY_DANGEROUS",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_HARASSMENT",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_HATE_SPEECH",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-        "threshold": "BLOCK_NONE",
-    },
-]
-
-model = genai.GenerativeModel('gemini-pro', safety_settings)
+#GOOGLE_API_KEY=os.getenv('GOOGLE_API_KEY')
+#
+#genai.configure(api_key=GOOGLE_API_KEY)
+#
+#safety_settings = [
+#    {
+#        "category": "HARM_CATEGORY_DANGEROUS",
+#        "threshold": "BLOCK_NONE",
+#    },
+#    {
+#        "category": "HARM_CATEGORY_HARASSMENT",
+#        "threshold": "BLOCK_NONE",
+#    },
+#    {
+#        "category": "HARM_CATEGORY_HATE_SPEECH",
+#        "threshold": "BLOCK_NONE",
+#    },
+#    {
+#        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+#        "threshold": "BLOCK_NONE",
+#    },
+#    {
+#        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+#        "threshold": "BLOCK_NONE",
+#    },
+#]
+#
+#model = genai.GenerativeModel('gemini-pro', safety_settings)
 
 #socketio = SocketIO
 app = Flask(__name__)
@@ -91,12 +91,12 @@ CONNECT_EXCEPTIONS = (ConnectionRefusedError, ConnectionResetError, rcon.Session
 global client
 
 last_text = ""
-kill_switch = False
 game_running = False
-auto_disable_voice = True
 queue = []
 conlog = ConLog(game_root=config.data["gameroot"], mod_root=config.data["modroot"])
 sp = SoundPlayer()
+
+SELF_ADDRESS = '127.0.0.1'
 
 def to_markdown(text):
   text = text.replace('•', '  *')
@@ -153,7 +153,6 @@ You: <your message here>"""
     # print question
     print(f"{Back.CYAN}{author}{Back.RESET}{Fore.CYAN}: {question}")
     
-    """
     message = replicate.run(
         "meta/llama-2-70b-chat",
         input={
@@ -168,12 +167,11 @@ You: <your message here>"""
         },
     )
     """
-
     response = model.generate_content("talk in first person unless the following backstory says not to: " + "\n" + backstory + "\n" + question)
-
-    full = response.text
+    """
+    full = "".join(message)
     
-    full = re.sub("^you: ?", "", full, flags=re.RegexFlag.IGNORECASE) # check if message starts with you:
+    full = re.sub("^( )?you: ?", "", full, flags=re.RegexFlag.IGNORECASE) # check if message starts with you:
     full = re.sub("^[\"\']|[\"\']$", "", full) # check if message has quotes at beginning and end
     
     chat_memory.append(f"You: {full}")
@@ -255,7 +253,8 @@ commands = [
 ]
 
 def check_commands(client: Client, username: str = config.data["username"], message: str = "", run = True):
-    if kill_switch:
+    global sp
+    if sp.kill_switch:
         return
     args = message.split(' ')
     for cmd in commands:
@@ -271,12 +270,11 @@ def check_commands(client: Client, username: str = config.data["username"], mess
 
 @app.route("/")
 def home():
-    global auto_disable_voice
-    global kill_switch
+    global sp
     
     if not game_running:
         return render_template('err.html', error="game_not_running")
-    return render_template('index.html', refreshTime=config.data["refresh_time"], killSwitch=kill_switch, autoDisableVoice=auto_disable_voice)
+    return render_template('index.html', refreshTime=config.data["refresh_time"], killSwitch=sp.kill_switch, autoDisableVoice=sp.auto_disable_voice)
 
 @socketio.on("send_cmd")
 def send_cmd(data: dict):
@@ -314,7 +312,7 @@ def queue_action(data: dict):
         if index + 1 >= len(queue):
             return False
         queue = util.swap(queue, index, index + 1)
-    elif action == 3: # send to top
+    elif action == 3: # send to front
         del queue[index]
         queue.insert(0, item)
     elif action == 4: # send to back
@@ -325,14 +323,14 @@ def queue_action(data: dict):
 @socketio.on("set_killswitch")
 def set_killswitch(val: bool):
     print(f"{Fore.RED}KILLSWITCH: {val}")
-    global kill_switch
-    kill_switch = val
+    global sp
+    sp.kill_switch = val
     
 @socketio.on("set_auto_disable_voice")
 def set_auto_disable_voice(val: bool):
     print(f"{Fore.RED}AUTO DISABLE: {val}")
-    global auto_disable_voice
-    auto_disable_voice = val
+    global sp
+    sp.auto_disable_voice = val
 
 
 def run_rcon_thread():
@@ -340,11 +338,12 @@ def run_rcon_thread():
     global client
     global queue
     global conlog
+    global sp
     while True:
         try:
-            with Client('127.0.0.1', 27015, passwd=config.data["password"]) as client:
+            with Client(SELF_ADDRESS, 27015, passwd=config.data["password"]) as client:
                 while True:
-                    if kill_switch:
+                    if sp.kill_switch:
                         continue
                     
                     if len(queue) >= 1:
@@ -364,22 +363,30 @@ def send_queue():
         queue_thing = {"username": util.escape_markup(i["username"]), "message": util.escape_markup(i["message"])}
         escaped_queue.append(queue_thing)
     socketio.emit("queueget", escaped_queue)
-    
+
+was_connected = False
 def run_rcon_try_thread():
     global game_running
+    global was_connected
     while True:
         try:
-            with Client('127.0.0.1', 27015, passwd=config.data["password"]) as try_client:
+            with Client(SELF_ADDRESS, 27015, passwd=config.data["password"]) as try_client:
+                if not was_connected:
+                    print(Fore.GREEN + "Connected!")
                 game_running = True
-        except CONNECT_EXCEPTIONS:
+                was_connected = True
+        except CONNECT_EXCEPTIONS as e:
+            print(Fore.RED + "Could not connect to game: " + str(e))
+            print(Fore.RED + "Please check if you have `-condebug -conclearlog -usercon -g15` in your launch options!")
             game_running = False
+            was_connected = False
         sleep(config.data["connection_check_time"])
         
 def run_rcon_ping_thread():
     global conlog
     while True:
         try:
-            with Client('127.0.0.1', 27015, passwd=config.data["password"]) as ping_client:
+            with Client(SELF_ADDRESS, 27015, passwd=config.data["password"]) as ping_client:
                 while True:
                     # update the queue
                     new = conlog.readnewlines()

@@ -7,6 +7,7 @@ from rcon.source import Client
 from config import config
 import numpy as np
 
+
 DEFAULT_VOLUME = config.data["default_volume"]
 
 class SoundPlayer:
@@ -36,39 +37,46 @@ class SoundPlayer:
         self.paused = False
         self.volume = volume
         self.auto_disable_voice = True
+        self.kill_switch = False
 
     def wait_until_done(
         self, client: Client, inp: threading.Thread, out: threading.Thread
     ):
         inp.join()
         out.join()
+        self.stopped = True
 
-        if self.auto_disable_voice and self.stopped:
+        if self.auto_disable_voice:
+            print("-voicerecord")
             client.run("-voicerecord")
 
     def play(self, client: Client, file: str, block: bool = True):
         self.stopped = False
         self.url = file
         print(f"{'blocking to ' if block else ''}start sound {file}")
+        
+        inp = None
+        out = None
+        
+        if not self.kill_switch:
+            client.run("+voicerecord")
 
-        client.run("+voicerecord")
+            # play through the microphone
+            inp = threading.Thread(
+                target=self._quick_play,
+                args=[self.input_player, config.data["vbcable"], file, 1],
+                daemon=True,
+            )
 
-        # play through the microphone
-        inp = threading.Thread(
-            target=self._quick_play,
-            args=[self.input_player, config.data["vbcable"], file, 1],
-            daemon=True,
-        )
+            # play through the speakers
+            out = threading.Thread(
+                target=self._quick_play,
+                args=[self.output_player, config.data["soundoutput"], file, 1],
+                daemon=True,
+            )
 
-        # play through the speakers
-        out = threading.Thread(
-            target=self._quick_play,
-            args=[self.output_player, config.data["soundoutput"], file, 1],
-            daemon=True,
-        )
-
-        inp.start()
-        out.start()
+            inp.start()
+            out.start()
 
         wait_thread = threading.Thread(
             target=self.wait_until_done, args=[client, inp, out]

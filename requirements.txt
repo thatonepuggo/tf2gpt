@@ -1,8 +1,10 @@
 colorama==0.4.6
-Flask==3.0.2
+Flask==3.0.3
 Flask_SocketIO==5.3.6
 gTTS==2.5.1
+ipython==8.12.3
 MarkupSafe==2.1.4
+numpy==2.0.0
 pygame==2.5.2
 python-dotenv==1.0.1
 python_vlc==3.0.20123

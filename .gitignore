@@ -1,4 +1,6 @@
 .env
+venv
+.venv
 output.mp3
 app/__pycache__
 app/config.yaml
