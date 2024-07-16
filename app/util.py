@@ -55,6 +55,13 @@ def remove_empty_lines(input_string: str):
     result_string = '\n'.join(non_empty_lines)
     return result_string
 
+def is_empty(string: str):
+    """
+    is a string empty?
+    """
+
+    return string.strip() == ""
+
 # for example: " version : 8622567/24 862567 secure" matches "version"
 re_header_line_key = r'^[^\s]+(?= *: .*)'
 re_plist_key = r'^# userid *name *uniqueid *connected *ping *loss *state'
@@ -95,7 +102,6 @@ def filter_status(status: str):
         if line.startswith("#"):
             for regex in regexes_to_run:
                 retsplit[index] = re.sub(regex, " ", retsplit[index], flags=RegexFlag.MULTILINE)
-                retsplit[index] = retsplit[index].strip()
     
     ret = "\n".join(retsplit)
     

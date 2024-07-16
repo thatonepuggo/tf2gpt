@@ -87,6 +87,8 @@ re_message = re.compile(r'(?<=. : ).*')
 
 CONNECT_EXCEPTIONS = (ConnectionRefusedError, ConnectionResetError, rcon.SessionTimeout, rcon.WrongPassword, rcon.EmptyResponse)
 
+SELF_ADDRESS = '127.0.0.1'
+SELF_PORT = 27015
 # globals #
 global client
 
@@ -96,7 +98,6 @@ queue = []
 conlog = ConLog(game_root=config.data["gameroot"], mod_root=config.data["modroot"])
 sp = SoundPlayer()
 
-SELF_ADDRESS = '127.0.0.1'
 
 def to_markdown(text):
   text = text.replace('•', '  *')
@@ -108,36 +109,16 @@ def ask(author: str, question: str):
     global client
     chat_memory = chat_memory[-20:]
     memory_string = '\n'.join(chat_memory)
-    #client.run("__begin_status_output__")
-    #client.run("status")
-    #sleep(1)
-    #client.run("__end_staftus_output__")
-    #recording = False
-    #status = ""
-    #sleep(2)
-    #newlines = conlog.readnewlines()
-    #for line in newlines:
-    #    print(line)
-    #    if "Unknown command: __begin_status_output__" in line:
-    #        recording = True
-    #    elif "Unknown command: __end_status_output__" in line:
-    #        recording = False
-    #    if recording:
-    #        status += line + "\n"
-    
-    #status = conlog.status(client)
-    #print(status)
-    
-    #return "hold up"
-    
-    """
-    here is your conversation info. it includes the name of the server, and who is in it. it also includes the time they've been here.
-    ---beginning of conversation info, use this as reference---
-    {util.filter_status(status)}
-    ---end of conversation info---
-    """
-    gen_prompt = f"""{backstory}
+    #status_string = util.filter_status(conlog.get_status(client))
 
+    """
+here is your conversation info. it includes the name of the server, and who is in it. it also includes the time they've been here.
+---beginning of conversation info, use this as reference---
+{status_string}
+---end of conversation info---
+    """
+
+    gen_prompt = f"""{backstory}
 here is your current chat history, use this to remember context from earlier. (if 'You' said this, you said this. Otherwise, that was a user.).
 this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remember you saying this some time ago." if it isn't acutally in history, dont say it.
 ---beginning of your chat history, use this as memory.---
@@ -145,7 +126,7 @@ this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remem
 ---end of your chat history---
 ---beginning of current chat message---
 [INST] {author}: {question} [/INST]
-You: <your message here>"""
+<your message here>"""
     #print(gen_prompt)
 
     chat_memory.append(f"{author}: {question}")
@@ -341,7 +322,7 @@ def run_rcon_thread():
     global sp
     while True:
         try:
-            with Client(SELF_ADDRESS, 27015, passwd=config.data["password"]) as client:
+            with Client(SELF_ADDRESS, SELF_PORT, passwd=config.data["password"]) as client:
                 while True:
                     if sp.kill_switch:
                         continue
@@ -370,7 +351,7 @@ def run_rcon_try_thread():
     global was_connected
     while True:
         try:
-            with Client(SELF_ADDRESS, 27015, passwd=config.data["password"]) as try_client:
+            with Client(SELF_ADDRESS, SELF_PORT, passwd=config.data["password"]) as try_client:
                 if not was_connected:
                     print(Fore.GREEN + "Connected!")
                 game_running = True
@@ -386,7 +367,7 @@ def run_rcon_ping_thread():
     global conlog
     while True:
         try:
-            with Client(SELF_ADDRESS, 27015, passwd=config.data["password"]) as ping_client:
+            with Client(SELF_ADDRESS, SELF_PORT, passwd=config.data["password"]) as ping_client:
                 while True:
                     # update the queue
                     new = conlog.readnewlines()

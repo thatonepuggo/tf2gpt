@@ -1,6 +1,9 @@
 import re
+from time import sleep
 from config import config
 from rcon.source import Client
+import util
+from uuid import uuid5
 
 class ConLog:
     """
@@ -12,6 +15,9 @@ class ConLog:
     game_root: str
     mod_root: str
     unread: int
+
+    BEGIN_STATUS = "__begin_status_output__"
+    END_STATUS = "__end_status_output__"
     
     def __init__(self,
                  con_logfile: str = "console.log",
@@ -57,9 +63,8 @@ class ConLog:
         unread = self.unread
         self.unread = len(contents)
         return contents[unread:]
-        
     
-    def status(self, client: Client):
+    def _get_status_lines(self, client: Client):
         # dont ask what this does (because idk)
         # its from here: https://github.com/MegaAntiCheat/client-backend/blob/41bfd62d9c46158677b6e0b250c0234cb4a935e7/src/io/regexes.rs#L127C8-L127C88
         REGEX_STATUS = re.compile(r'^#\s*(\d+)\s"(.*)"\s+(\[U:\d:\d+\])\s+((?:[\ds]+:?)+)\s+(\d+)\s*(\d+)\s*(\w+).*$')
@@ -72,4 +77,24 @@ class ConLog:
             if REGEX_STATUS.match(line):
                 status_lines.append(line)
         
-        return status_lines
+        return "\n".join(status_lines)
+    
+    def get_status(self, client: Client):
+        uuid = str(uuid5())
+        client.run(f"{self.BEGIN_STATUS}_{uuid}")
+        result = client.run("status")
+        if util.is_empty(result):
+            client.run(f"{self.END_STATUS}_{uuid}")
+            recording = False
+            result = ""
+            newlines = self.readnewlines()
+            for line in newlines:
+                print(line)
+                if f"{self.BEGIN_STATUS}_{uuid}" in line:
+                    recording = True
+                elif f"{self.END_STATUS}_{uuid}" in line:
+                    recording = False
+                if recording:
+                    result += line + "\n"
+            print("str: " + result)
+        return result
