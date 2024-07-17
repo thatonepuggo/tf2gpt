@@ -119,10 +119,9 @@ this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remem
     full = full.strip()
     
     chat_memory.append(f"You: {full}")
-    print(Fore.GREEN + full + "\n")
     return full
 
-def tts(client: Client, text):
+def tts(client: Client, text, print_text = True):
     if text.strip() == "":
         print(f"{Fore.RED}Empty prompt in '{text}'")
         return
@@ -144,6 +143,8 @@ def tts(client: Client, text):
     else:
         print(Fore.RED + "using cached sound")
     
+    if print_text:
+        print(Fore.GREEN + text + "\n")
     sp.play(client, config.data["cached_snd"])
 
 def cmd_backstory(client: Client, username: str, message: str, args: list[str]):
@@ -160,7 +161,7 @@ def cmd_backstory(client: Client, username: str, message: str, args: list[str]):
     
     print(f"{Fore.CYAN}set backstory: {backstory}")
     
-    tts(client, f"set backstory to '{trimmed_backstory} ")
+    tts(client, f"set backstory to '{trimmed_backstory} ", print_text = False)
     
     chat_memory.clear()
 
@@ -177,7 +178,6 @@ def cmd_ttsask(client: Client, username: str, message: str, args: list[str]):
 
 def cmd_ttssay(client: Client, username: str, message: str, args: list[str]):
     text = ' '.join(args[1:])
-    print(Fore.GREEN + text + "\n")
     
     filtered = blocked_words.blocked_words_filter(text)
     if filtered == "":
