@@ -1,12 +1,14 @@
 from math import ceil
 
 import threading
+from time import sleep
 import vlc
 from rcon.source import Client
 
 from config import config
 import numpy as np
-
+import mutagen
+from mutagen.mp3 import MP3 
 
 DEFAULT_VOLUME = config.data["default_volume"]
 
@@ -40,10 +42,11 @@ class SoundPlayer:
         self.kill_switch = False
 
     def wait_until_done(
-        self, client: Client, inp: threading.Thread, out: threading.Thread
+        self, client: Client, inp: threading.Thread, out: threading.Thread, length: int
     ):
-        inp.join()
-        out.join()
+        #inp.join()
+        #out.join()
+        sleep(length)
         self.stopped = True
 
         if self.auto_disable_voice:
@@ -60,7 +63,7 @@ class SoundPlayer:
         
         if not self.kill_switch:
             client.run("+voicerecord")
-
+            length = MP3(file).info.length
             # play through the microphone
             inp = threading.Thread(
                 target=self._quick_play,
@@ -74,12 +77,12 @@ class SoundPlayer:
                 args=[self.output_player, config.data["soundoutput"], file, 1],
                 daemon=True,
             )
-
+            
             inp.start()
             out.start()
 
         wait_thread = threading.Thread(
-            target=self.wait_until_done, args=[client, inp, out]
+            target=self.wait_until_done, args=[client, inp, out, length]
         )
         wait_thread.start()
         if block:
