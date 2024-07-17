@@ -42,11 +42,10 @@ class SoundPlayer:
         self.kill_switch = False
 
     def wait_until_done(
-        self, client: Client, inp: threading.Thread, out: threading.Thread, length: int
+        self, client: Client, inp: threading.Thread, out: threading.Thread
     ):
         #inp.join()
-        #out.join()
-        sleep(length)
+        out.join()
         self.stopped = True
 
         if self.auto_disable_voice:
@@ -63,7 +62,8 @@ class SoundPlayer:
         
         if not self.kill_switch:
             client.run("+voicerecord")
-            length = MP3(file).info.length
+            #length = abs(self.length(file))
+            #print(length)
             # play through the microphone
             inp = threading.Thread(
                 target=self._quick_play,
@@ -82,7 +82,7 @@ class SoundPlayer:
             out.start()
 
         wait_thread = threading.Thread(
-            target=self.wait_until_done, args=[client, inp, out, length]
+            target=self.wait_until_done, args=[client, inp, out]
         )
         wait_thread.start()
         if block:
@@ -110,7 +110,7 @@ class SoundPlayer:
         self, player: vlc.MediaPlayer, devicename: str, file: str, volume_mul=1
     ):
         device_id, _ = self.get_device(player, devicename)
-        print(f"{file} on {device_id} * {volume_mul}")
+        #print(f"{file} on {device_id} * {volume_mul}")
 
         def _upd_volume():
             # multiply volume by volume multiplier
@@ -129,9 +129,8 @@ class SoundPlayer:
         player.play()
 
         # wait until stop
-        while (
-            player.get_state() != 6 and (not self.stopped) and self.url == file
-        ):  # 6 = ended
+        while player.get_state() != vlc.State.Ended and (not self.stopped) and (not self.kill_switch) and self.url == file:  # 6 = ended
             player.set_pause(self.paused)
+            print(player.get_state())
             _upd_volume()
         player.set_media(None)

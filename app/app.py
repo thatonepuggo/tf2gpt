@@ -184,16 +184,19 @@ def tts(client: Client, text):
             pattern = re.compile(r'(^|\s){}(\s|$)'.format(re.escape(word)))
             translated_text = pattern.sub(r'\1{}\2'.format(replacement), translated_text)
         
-        tts = gTTS(text=translated_text, lang='en', tld="co.uk", slow=False)
-        #engine = pyttsx3.init()
-        #engine.save_to_file(text, config.data["cached_snd"])
-        #engine.runAndWait()
         try:
-            os.remove(config.data["cached_snd"])
-        except FileNotFoundError:
-            print(Fore.RED + "file does not exist, skipping removal.")
-        tts.save(config.data["cached_snd"])
-        last_text = text
+            tts = gTTS(text=translated_text, lang='en', tld="co.uk", slow=False)
+            #engine = pyttsx3.init()
+            #engine.save_to_file(text, config.data["cached_snd"])
+            #engine.runAndWait()
+            try:
+                os.remove(config.data["cached_snd"])
+            except (FileNotFoundError, PermissionError):
+                print(Fore.RED + "some errro, skipping removal.")
+            tts.save(config.data["cached_snd"])
+            last_text = text
+        except AssertionError:
+            print("gtts shit itself")
     else:
         print(Fore.RED + "using cached sound")
     
