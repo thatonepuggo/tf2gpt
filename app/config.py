@@ -44,6 +44,7 @@ He taught you most of what you know now, how to protect yourself in a fight, as 
 
         "blocked_words": [],
         "blocked_words_deal_method": "ignore",
+        "blocked_words_replacement": "bleep",
     }
     
     def __init__(self, config_file: str = "app/config.yaml"):

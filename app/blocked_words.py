@@ -18,6 +18,9 @@ def blocked_words_filter(string: str) -> str:
     elif method == "remove":
         for word in lst:
             ret = ret.replace(word, "")
+    elif method == "replace":
+        for word in lst:
+            ret = ret.replace(word, config.data["blocked_words_replacement"])
     elif method == "skip":
         if has_blocked_words(string):
             ret = ""

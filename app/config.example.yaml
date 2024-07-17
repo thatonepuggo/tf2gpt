@@ -52,5 +52,9 @@ blocked_words:
 # possible values:
 # ignore - disable the blocked words feature
 # remove - remove every blocked word from the string
+# replace - replace every blocked word with blocked_words_replacement
 # skip - skip the message if it contains blocked words
 blocked_words_deal_method: ignore
+
+# ONLY WORKS WITH blocked_words_replacement: replace
+blocked_words_replacement: bleep
