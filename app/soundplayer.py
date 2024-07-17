@@ -2,6 +2,7 @@ from math import ceil
 
 import threading
 from time import sleep
+import time
 import vlc
 from rcon.source import Client
 
@@ -40,12 +41,14 @@ class SoundPlayer:
         self.volume = volume
         self.auto_disable_voice = True
         self.kill_switch = False
+        self.length = 0
 
     def wait_until_done(
-        self, client: Client, inp: threading.Thread, out: threading.Thread
+        self, client: Client, inp: threading.Thread, out: threading.Thread, length: int
     ):
         #inp.join()
-        out.join()
+        #out.join()
+        sleep(length)
         self.stopped = True
 
         if self.auto_disable_voice:
@@ -55,6 +58,8 @@ class SoundPlayer:
     def play(self, client: Client, file: str, block: bool = True):
         self.stopped = False
         self.url = file
+        length = MP3(file).info.length
+
         print(f"{'blocking to ' if block else ''}start sound {file}")
         
         inp = None
@@ -80,9 +85,9 @@ class SoundPlayer:
             
             inp.start()
             out.start()
-
+        
         wait_thread = threading.Thread(
-            target=self.wait_until_done, args=[client, inp, out]
+            target=self.wait_until_done, args=[client, inp, out, length]
         )
         wait_thread.start()
         if block:
@@ -127,10 +132,12 @@ class SoundPlayer:
 
         _upd_volume()
         player.play()
-
+        sleep(1.5)
+        duration = player.get_length() / 1000
+        last_time = time.time()
+        print(f"{last_time} + {duration} = {last_time + duration}")
         # wait until stop
-        while player.get_state() != vlc.State.Ended and (not self.stopped) and (not self.kill_switch) and self.url == file:  # 6 = ended
-            player.set_pause(self.paused)
-            print(player.get_state())
-            _upd_volume()
-        player.set_media(None)
+        #while time.time() <= last_time + duration and (not self.stopped) and (not self.kill_switch) and self.url == file:  # 6 = ended
+        #    player.set_pause(self.paused)
+        #    _upd_volume()
+        #player.set_media(None)

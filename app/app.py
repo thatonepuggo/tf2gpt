@@ -211,6 +211,8 @@ def tts(client: Client, text):
 
 def cmd_backstory(client: Client, username: str, message: str, args: list[str]):
     global backstory
+    if len(args) == 0:
+        return
     backstory = ' '.join(args[1:])
     if args[1] == "default":
         backstory = config.data["prompt"]
