@@ -31,9 +31,9 @@ from config import config
 from aicmd import AICommand
 from soundplayer import SoundPlayer
 import util
+import blocked_words
 
 import textwrap
-#import google.generativeai as genai
 
 from IPython.display import display
 from IPython.display import Markdown
@@ -41,37 +41,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Or use `os.getenv('GOOGLE_API_KEY')` to fetch an environment variable.
-#GOOGLE_API_KEY=os.getenv('GOOGLE_API_KEY')
-#
-#genai.configure(api_key=GOOGLE_API_KEY)
-#
-#safety_settings = [
-#    {
-#        "category": "HARM_CATEGORY_DANGEROUS",
-#        "threshold": "BLOCK_NONE",
-#    },
-#    {
-#        "category": "HARM_CATEGORY_HARASSMENT",
-#        "threshold": "BLOCK_NONE",
-#    },
-#    {
-#        "category": "HARM_CATEGORY_HATE_SPEECH",
-#        "threshold": "BLOCK_NONE",
-#    },
-#    {
-#        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-#        "threshold": "BLOCK_NONE",
-#    },
-#    {
-#        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-#        "threshold": "BLOCK_NONE",
-#    },
-#]
-#
-#model = genai.GenerativeModel('gemini-pro', safety_settings)
-
-#socketio = SocketIO
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, async_mode="threading")
@@ -97,11 +66,6 @@ game_running = False
 queue = []
 conlog = ConLog(game_root=config.data["gameroot"], mod_root=config.data["modroot"])
 sp = SoundPlayer()
-
-
-def to_markdown(text):
-  text = text.replace('•', '  *')
-  return Markdown(textwrap.indent(text, '> ', predicate=lambda _: True))
 
 def ask(author: str, question: str):
     global backstory
@@ -147,13 +111,12 @@ this is for you to refrence as memory, not to use in chat. i.e. "oh yes, i remem
             "min_new_tokens": -1
         },
     )
-    """
-    response = model.generate_content("talk in first person unless the following backstory says not to: " + "\n" + backstory + "\n" + question)
-    """
     full = "".join(message)
     
+    # cleanup string #
     full = re.sub("^( )?you: ?", "", full, flags=re.RegexFlag.IGNORECASE) # check if message starts with you:
     full = re.sub("^[\"\']|[\"\']$", "", full) # check if message has quotes at beginning and end
+    full = full.strip()
     
     chat_memory.append(f"You: {full}")
     print(Fore.GREEN + full + "\n")
@@ -165,49 +128,23 @@ def tts(client: Client, text):
         return
     global last_text
     if text != last_text:
-        #output = replicate.run(
-        #    "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
-        #    input={
-        #        "speaker": config.data["voice_training"],
-        #        "text": text
-        #    }
-        #)
-        
-        #response = requests.get(output, allow_redirects=True)
-        #with open(config.data["cached_snd"], "wb") as f:
-        #    f.write(response.content)
-        
         # translate the text
-        translated_text = text
-        words = config.data["tts_translations"].get("words", {})
-        for word, replacement in words.items():
-            pattern = re.compile(r'(^|\s){}(\s|$)'.format(re.escape(word)))
-            translated_text = pattern.sub(r'\1{}\2'.format(replacement), translated_text)
-        
+        translated_text = util.translate_text(text, config.data["tts_translations"].get("words", {}))
+
         try:
-            tts = gTTS(text=translated_text, lang='en', tld="co.uk", slow=False)
-            #engine = pyttsx3.init()
-            #engine.save_to_file(text, config.data["cached_snd"])
-            #engine.runAndWait()
+            tts = gTTS(text=translated_text, lang='en', tld=config.data["gtts_tld"], slow=False)
             try:
                 os.remove(config.data["cached_snd"])
             except (FileNotFoundError, PermissionError):
                 print(Fore.RED + "some errro, skipping removal.")
             tts.save(config.data["cached_snd"])
             last_text = text
-        except AssertionError:
-            print("gtts shit itself")
+        except AssertionError as e:
+            print(f"{Fore.RED}gTTS shit itself: {e}")
     else:
         print(Fore.RED + "using cached sound")
     
     sp.play(client, config.data["cached_snd"])
-    #mixer.music.load(config.data["cached_snd"])
-    #sleep(0.1)
-    #mixer.music.play()
-    #while mixer.music.get_busy():
-    #    pass
-    #mixer.quit()
-    #mixer.init(devicename = config.data["vbcable"])
 
 def cmd_backstory(client: Client, username: str, message: str, args: list[str]):
     global backstory
@@ -217,20 +154,36 @@ def cmd_backstory(client: Client, username: str, message: str, args: list[str]):
     if args[1] == "default":
         backstory = config.data["prompt"]
     sleep(2)
+
+    # trim the backstory (so the ai doesn't say the entire thing if it's incredibly long)
     trimmed_backstory = backstory if len(backstory) < config.data["backstory_max_len"] else f"{backstory[:config.data["backstory_max_len"]]} dot dot dot"
+    
     print(f"{Fore.CYAN}set backstory: {backstory}")
+    
     tts(client, f"set backstory to '{trimmed_backstory} ")
+    
     chat_memory.clear()
 
 def cmd_ttsask(client: Client, username: str, message: str, args: list[str]):
     sp.play(client, config.data["processing_snd"])
     question = " ".join(args[1:])
-    tts(client, f"{username} asks: {', '.join(args[1:]) if config.data["say_question_like_first_grader"] else question}: {ask(username, question)}")
+    question_to_say = ', '.join(args[1:]) if config.data["say_question_like_first_grader"] else question
+
+    filtered = blocked_words.blocked_words_filter(question)
+    if filtered == "":
+        return
+    
+    tts(client, f"{username} asks: {question_to_say}: {ask(username, filtered)}")
 
 def cmd_ttssay(client: Client, username: str, message: str, args: list[str]):
     text = ' '.join(args[1:])
     print(Fore.GREEN + text + "\n")
-    tts(client, text)
+    
+    filtered = blocked_words.blocked_words_filter(text)
+    if filtered == "":
+        return
+    
+    tts(client, filtered)
 
 commands = [
     AICommand(name="backstory", aliases=["become", "story", "bs", "prompt"], func=cmd_backstory, min_args=1),
@@ -363,7 +316,11 @@ def run_rcon_try_thread():
                 was_connected = True
         except CONNECT_EXCEPTIONS as e:
             print(Fore.RED + "Could not connect to game: " + str(e))
-            print(Fore.RED + "Please check if you have `-condebug -conclearlog -usercon -g15` in your launch options!")
+            print(Fore.RED + """
+Please check if you: 
+    - have `-condebug -conclearlog -usercon -g15` in your launch options
+    - have the correct lines in your autoexec
+""")
             game_running = False
             was_connected = False
         sleep(config.data["connection_check_time"])

@@ -24,6 +24,7 @@ He taught you most of what you know now, how to protect yourself in a fight, as 
         
         "processing_snd": "processing.mp3",
         "cached_snd": "output.mp3",
+        "gtts_tld": "co.uk",
          
         "refresh_time": 1,
         "connection_check_time": 5,
@@ -39,7 +40,10 @@ He taught you most of what you know now, how to protect yourself in a fight, as 
                 "|": "pipe",
                 "ß": "es zett",
             }
-        }
+        },
+
+        "blocked_words": [],
+        "blocked_words_deal_method": "ignore",
     }
     
     def __init__(self, config_file: str = "app/config.yaml"):

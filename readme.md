@@ -1,5 +1,5 @@
 # epic rcon ai thing!!
-lets people in source games run ";ask" to ask an ai a question.
+lets people in source games run "\ask" to ask an ai a question.
 
 # how to run
 
@@ -9,7 +9,7 @@ install the dependencies: `pip install -r requirements.txt`
 
 install vlc [here](https://www.videolan.org/)
 
-get [virtual audio cable](https://vb-audio.com/Cable/). this will let you use tts response message with the ;ask command.
+get [virtual audio cable](https://vb-audio.com/Cable/).
 
 ## launch options and autoexec
 
@@ -25,7 +25,7 @@ rcon_password dontcarelol // edit this if you want
 net_start
 ```
 
-run `python setup.py` and go through the prompts
+copy `app/config.example.yaml` to `app/config.yaml`
 
 you dont have to edit the rcon_password since the port for rcon likely isnt open, but if you do, edit `config.yaml` and change the `password` variable to reflect that change.
 
@@ -35,13 +35,19 @@ in `config.yaml`, you can edit the `prompt` to your liking or you can leave it t
 
 if you do not already have a replicate account, you can make one by going to this link: https://replicate.com
 
-copy .env_example to .env
+copy `.env.example` to `.env`
 
 change the .env file to include your replicate api token.
 
 ## ur done
-
 in your browser, connect to the panel by going to https://localhost:5000.
+
+in the steam overlay browser, you might have to use `http://` instead of `https://`. so use http://localhost:5000 if you use that.
+
+## faq (but not really bc no one uses this lol)
+Q: what is the funnies folder?
+
+A: the funnies folder is for funny things people have said
 
 # thanks to
 - nickplj12 (for mercenary discord bot, which this is sorta based off of) aka nickplj12 on discord

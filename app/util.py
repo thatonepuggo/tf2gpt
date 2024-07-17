@@ -1,7 +1,9 @@
 import os
+import textwrap
 from markupsafe import Markup
 import re
 from re import RegexFlag
+from IPython.display import Markdown
 
 def escape_markup(string: str) -> str:
     """
@@ -108,3 +110,18 @@ def filter_status(status: str):
     ret = remove_empty_lines(ret)
     print(ret)
     return ret
+
+def translate_text(text: str, words: dict):
+    ret = text
+    for word, replacement in words.items():
+        pattern = re.compile(r'(^|\s){}(\s|$)'.format(re.escape(word)))
+        ret = pattern.sub(r'\1{}\2'.format(replacement), ret)
+    return ret
+
+def to_markdown(text: str) -> str:
+    """
+    turns text into markdown
+    """
+    text = text.replace('•', '  *')
+    return Markdown(textwrap.indent(text, '> ', predicate=lambda _: True))
+
