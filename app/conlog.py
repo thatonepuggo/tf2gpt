@@ -35,7 +35,7 @@ class ConLog:
         return f"{self.game_root}/{self.mod_root}/{self.con_logfile}"
 
     def open(self):
-        return open(self.logfile, encoding="utf-8")
+        return open(self.logfile, encoding="utf-8", errors='replace')
 
     def read(self):
         try:
