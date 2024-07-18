@@ -38,7 +38,7 @@ import textwrap
 from IPython.display import display
 from IPython.display import Markdown
 from dotenv import load_dotenv
-
+from queuemanager import QueueItem, queue
 load_dotenv()
 
 app = Flask(__name__)
@@ -63,7 +63,6 @@ global client
 
 last_text = ""
 game_running = False
-queue = []
 conlog = ConLog(game_root=config.data["gameroot"], mod_root=config.data["modroot"])
 sp = SoundPlayer()
 
@@ -186,7 +185,7 @@ def cmd_ttssay(client: Client, username: str, message: str, args: list[str]):
     tts(client, filtered)
 
 def cmd_queuelength(client: Client, username: str, message: str, args: list[str]):
-    tts(client, f"the queue is currently {len(queue)} message{'s' if len(queue) != 1 else ''} long")
+    tts(client, f"the queue is currently {len(queue)} request{'s' if len(queue) != 1 else ''} long")
 
 commands = [
     AICommand(name="backstory", aliases=["become", "bs", "prompt"], func=cmd_backstory, min_args=1),
@@ -232,7 +231,11 @@ def send_cmd(data: dict):
         return
     
     if cmd_type == "ai":
-        queue.insert(0, {"username": config.data["username"], "message": config.data["prefix"] + message})
+        queue.insert(0, QueueItem(
+            username = config.data["username"],
+            message = config.data["prefix"] + message, 
+            is_system = True
+        ))
     elif cmd_type == "rcon":
         client.run(message)
         
@@ -292,8 +295,8 @@ def run_rcon_thread():
                     if len(queue) >= 1:
                         # get oldest message so far
                         oldest = queue.pop(0)
-                        username = oldest["username"]
-                        message = oldest["message"]
+                        username = oldest.username
+                        message = oldest.message
                         check_commands(client, username, message) # run command
                         
                     sleep(config.data["refresh_time"])
@@ -303,7 +306,10 @@ def run_rcon_thread():
 def send_queue():
     escaped_queue = []
     for i in queue:
-        queue_thing = {"username": util.escape_markup(i["username"]), "message": util.escape_markup(i["message"])}
+        queue_thing = QueueItem(
+            username = util.escape_markup(i.username),
+            message = util.escape_markup(i.message)
+        )
         escaped_queue.append(queue_thing)
     socketio.emit("queueget", escaped_queue)
 
@@ -347,7 +353,7 @@ def run_rcon_ping_thread():
                             message = message_match.group().lstrip()
                             # add message to the end of the queue
                             if check_commands(client, username, message, False):
-                                queue.append({"username": username, "message": message})
+                                queue.append(QueueItem(username = username, message = message))
                                 
                     # send the log
                     escaped_log = util.remove_lines(conlog.read(), config.data["log_max_lines"])

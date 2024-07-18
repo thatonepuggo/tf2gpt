@@ -46,6 +46,8 @@ class SoundPlayer:
     def wait_until_done(
         self, client: Client, inp: threading.Thread, out: threading.Thread, length: int
     ):
+        inp.join()
+        out.join()
         sleep(length)
         self.stopped = True
 
@@ -126,6 +128,3 @@ class SoundPlayer:
 
         _upd_volume()
         player.play()
-        sleep(1.5)
-        duration = player.get_length() / 1000
-        last_time = time.time()
