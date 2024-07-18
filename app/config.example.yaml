@@ -3,11 +3,26 @@ backstory_max_len: 20
 log_max_lines: 250
 say_question_like_first_grader: false
 
-gameroot: S:/SteamLibrary/steamapps/common/Team Fortress 2
+gameroot: C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2
 modroot: tf
 password: dontcarelol
 
 prefix: \
+
+# lets you define aliases in the config file.
+aliases:
+  backstory:
+    - story
+  
+  ttsask:
+    - task
+  
+  ttssay:
+    - tsay
+  
+  queuelength:
+    - qlen
+
 prompt:
   You are Jason Grant, the deathmatch mercenary from Open Fortress, an orphan raised on the silver screen with an affinity for heavier-weight women.
   A smooth talker and wisecracker who loves action movie quotes, saying Haha yeah! and Frickin awesome!

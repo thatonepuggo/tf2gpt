@@ -189,10 +189,10 @@ def cmd_queuelength(client: Client, username: str, message: str, args: list[str]
     tts(client, f"the queue is currently {len(queue)} message{'s' if len(queue) != 1 else ''} long")
 
 commands = [
-    AICommand(name="backstory", aliases=["become", "story", "bs", "prompt"], func=cmd_backstory, min_args=1),
-    AICommand(name="ttsask", aliases=["ask", "task", "ttask"], func=cmd_ttsask, min_args=1, voice=True),
-    AICommand(name="ttssay", aliases=["say", "tsay", "ttsay"], func=cmd_ttssay, min_args=1, voice=True),
-    AICommand(name="queuelength", aliases=["queuelen", "qlen", "length", "len"], func=cmd_queuelength, min_args=0, voice=True),
+    AICommand(name="backstory", aliases=["become", "bs", "prompt"], func=cmd_backstory, min_args=1),
+    AICommand(name="ttsask", aliases=["ask", "ttask"], func=cmd_ttsask, min_args=1, voice=True),
+    AICommand(name="ttssay", aliases=["say", "ttsay"], func=cmd_ttssay, min_args=1, voice=True),
+    AICommand(name="queuelength", aliases=["queuelen", "length", "len"], func=cmd_queuelength, min_args=0, voice=True),
 ]
 
 def check_commands(client: Client, username: str = config.data["username"], message: str = "", run = True):

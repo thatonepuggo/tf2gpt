@@ -5,22 +5,25 @@
 {% block body %}
 <div class="grid-item grid1">
     <h1>Send</h1>
+    <p>You no longer need to input the prefix before the command in the admin panel!</p>
     Send AI: <input type="text" id="aicmd"> <button id="sendaicmd">Send</button><br>
     Send RCON: <input type="text" id="rconcmd"> <button id="sendrconcmd">Send</button><br>
     <h5 id="info">Info will show up here.</h5>
+    
     {% if killSwitch %}
-    <input type="checkbox" id="killSwitch" checked="true">
+    <input type="checkbox" id="killSwitch" checked>
     {% else %}
     <input type="checkbox" id="killSwitch">
     {% endif %}
-    KILL SWITCH
+    <span>KILL SWITCH</span>
     <br>
+    
     {% if autoDisableVoice %}
-    <input type="checkbox" id="autoDisableVoice" checked="true">
+    <input type="checkbox" id="autoDisableVoice" checked>
     {% else %}
     <input type="checkbox" id="autoDisableVoice">
     {% endif %}
-    AUTO DISABLE VOICE
+    <span>AUTO DISABLE VOICE</span>
 </div>
 <div class="grid-item grid2">
     <h1>Command</h1>

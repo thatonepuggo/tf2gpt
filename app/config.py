@@ -12,6 +12,9 @@ class ConfigFile:
         "password": "dontcarelol",
         
         "prefix": "\\",
+
+        "aliases": {},
+
         "prompt": """You are Jason Grant, the deathmatch mercenary from Open Fortress, an orphan raised on the silver screen with an affinity for heavier-weight women.
 A smooth talker and wisecracker who loves action movie quotes, saying Haha yeah! and Frickin awesome!
 Your best friend is the Civilian, a rich and portly British oil baron. Your girlfriend is Vivian, a fat secretary. You have a pet albino rat named Chuck.
@@ -38,7 +41,7 @@ He taught you most of what you know now, how to protect yourself in a fight, as 
                 ";": "semicolon",
                 ":": "colon",
                 "|": "pipe",
-                "ß": "es zett",
+                "\u1E9E": "es zett",
             }
         },
 

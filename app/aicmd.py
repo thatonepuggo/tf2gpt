@@ -24,11 +24,9 @@ class AICommand:
         return message.lower().split(' ')[0] == f"{conf.data["prefix"]}{cmdname}"
     
     def is_command(self, message):
-        # check the main name
-        if self._is_check(message, self.name):
-            return True
-        # check the aliases
-        for alias in self.aliases:
+        config_aliases = config.data["aliases"].get(self.name, [])
+        # check the main name, program aliases, and config aliases
+        for alias in [self.name] + [self.aliases] + config_aliases:
             if self._is_check(message, alias):
                 return True
         return False
