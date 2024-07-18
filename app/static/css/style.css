@@ -22,10 +22,11 @@ input {
     color: black;
 }
 
-/* TABLE */
+/* BEGIN TABLE */
+
 table {
     width: 100%;
-    height: fit-content;
+    min-height: max-content;
 }
 
 td, th {
@@ -38,6 +39,7 @@ td, th {
 tr:nth-child(even) {
     background-color: var(--col-console-darker);
 }
+
 /* END TABLE */
 
 /* BEGIN GRID */
