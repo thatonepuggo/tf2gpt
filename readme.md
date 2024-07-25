@@ -7,7 +7,7 @@ lets people in source games run "\ask" to ask an ai a question.
 
 install the dependencies: `pip install -r requirements.txt`
 
-install vlc [here](https://www.videolan.org/)
+install vlc [here](https://www.videolan.org/) **MAKE SURE YOU GET THE 64-BIT VERSION OR ELSE IT CAN'T FIND THE LIBVLC.DLL!**
 
 get [virtual audio cable](https://vb-audio.com/Cable/).
 
