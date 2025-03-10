@@ -1,29 +1,49 @@
+# config version.
+v: 2
+
+# the username for commands entered via the browser console
 username: System
-backstory_max_len: 20
+
+# the maximum number of characters before
+# the tts cuts off reading the backstory
+backstory_max_tts_len: 20
+
+# the maximum number of lines displayed in the
+# admin panel
 log_max_lines: 250
+
+# revive a bug where each question had a comma
+# between every word, causing the tts to read
+# questions very slowly.
 say_question_like_first_grader: false
 
-gameroot: C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2
-modroot: tf
+# the location of the console.log file.
+logfile: C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2/tf/console.log
+# logfile: ~/.local/share/Steam/steamapps/common/Team Fortress 2/tf/console.log
+
+# the rcon password. it doesn't need to be secure,
+# unless you have the rcon ports open. make sure
+# it is synced up with the one in your autoexec.
 password: dontcarelol
 
-prefix: \
+# command prefix
+prefix: ">"
 
-# lets you define aliases in the config file.
+# lets you define command aliases in the config file.
 aliases:
   backstory:
     - story
-  
+
   ttsask:
     - task
-  
+
   ttssay:
     - tsay
-  
+
   queuelength:
     - qlen
 
-prompt:
+backstory:
   You are Jason Grant, the deathmatch mercenary from Open Fortress, an orphan raised on the silver screen with an affinity for heavier-weight women.
   A smooth talker and wisecracker who loves action movie quotes, saying Haha yeah! and Frickin awesome!
   Your best friend is the Civilian, a rich and portly British oil baron. Your girlfriend is Vivian, a fat secretary. You have a pet albino rat named Chuck.
@@ -36,16 +56,13 @@ prompt:
 
 # you are a verbose man from the 1800s. you constantly use long words and use formal speak. you are also a rude brit.
 
-vbcable: CABLE Input (VB-Audio Virtual Cable)
-soundoutput: Headset Earphone (HyperX Virtual Surround Sound)
-default_volume: 100
-
 processing_snd: processing.mp3
 cached_snd: output.mp3
 
-refresh_time: 1
-connection_check_time: 5
-gtts_tld: com
+# when the top level domain is changed using gTTS,
+# the accent will change with it. see https://gtts.readthedocs.io/en/latest/module.html#localized-accents
+# for a list of TLDs.
+gtts_tld: co.uk
 
 tts_translations:
   words:
@@ -56,12 +73,11 @@ tts_translations:
     ";": semicolon
     ":": colon
     "|": pipe
-    "ß": es zett
+    "\u1e9e": es zett
+    "\u00df": es zett
 
 # disallow these words
-blocked_words:
-  - skibidi
-  - rizz
+blocked_words: []
 
 # what to do with blocked words
 # possible values:
@@ -71,5 +87,6 @@ blocked_words:
 # skip - skip the message if it contains blocked words
 blocked_words_deal_method: ignore
 
-# ONLY WORKS WITH blocked_words_replacement: replace
+# ONLY WORKS WITH blocked_words_replacement "replace".
+# the phrase to replace blocked words with.
 blocked_words_replacement: bleep

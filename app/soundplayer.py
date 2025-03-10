@@ -1,130 +1,91 @@
-from math import ceil
+# stdlib #
+import sys
+from typing import Self
+from os import environ
 
-import threading
-from time import sleep
-import time
-import vlc
-from rcon.source import Client
+# pypi #
+import pulsectl
 
-from config import config
-import numpy as np
-import mutagen
-from mutagen.mp3 import MP3 
+# local #
+from .util import parse_pa_modargs
 
-DEFAULT_VOLUME = config.data["default_volume"]
+# needed otherwise pygame wont recognize sources/sinks
+if sys.platform == "linux":
+  environ["SDL_AUDIODRIVER"] = "pulseaudio"
+
+from pygame import mixer
+
+# local #
+from .consts import SINK_NAME, SOURCE_NAME, VBCABLE_NAME
+from . import state
+
+sink_id: int
+source_id: int
+
 
 class SoundPlayer:
-    @staticmethod
-    # Get list of output devices
-    def get_device(player: vlc.MediaPlayer, devicename: str):
-        mods = player.audio_output_device_enum()
-        if mods:
-            mod = mods
-            while mod:
-                mod = mod.contents
-                # If device is found, return its module and device id
-                if devicename in str(mod.description):
-                    device = mod.device
-                    module = mod.description
-                    return device, module
-                mod = mod.next
 
-    def __init__(self, volume=DEFAULT_VOLUME):
-        self.instance: vlc.Instance = vlc.Instance("--no-xlib -q")
+  kill_switch: bool = False
+  auto_disable_voice: bool = True
 
-        self.input_player: vlc.MediaPlayer = self.instance.media_player_new()
-        self.output_player: vlc.MediaPlayer = self.instance.media_player_new()
+  def __init__(self):
+    if sys.platform == "linux":
+      with pulsectl.Pulse("tf2gpt") as pulse:
+        global sink_id
+        global source_id
 
-        self.url = ""
-        self.stopped = False
-        self.paused = False
-        self.volume = volume
-        self.auto_disable_voice = True
-        self.kill_switch = False
-        self.length = 0
+        self._clear_modules(pulse)
 
-    def wait_until_done(
-        self, client: Client, inp: threading.Thread, out: threading.Thread, length: int
-    ):
-        inp.join()
-        out.join()
-        sleep(length)
-        self.stopped = True
+        # "speakers"
+        sink_id = pulse.module_load(
+            "module-null-sink", f"sink_name={SINK_NAME}")
 
-        if self.auto_disable_voice:
-            client.run("-voicerecord")
+        # "mic"
+        source_id = pulse.module_load(
+            "module-virtual-source", f"source_name={SOURCE_NAME} master={SINK_NAME}.monitor")
 
-    def play(self, client: Client, file: str, block: bool = True):
-        self.stopped = False
-        self.url = file
-        length = MP3(file).info.length
+        print(sink_id, source_id)
 
-        print(f"{'blocking to ' if block else ''}start sound {file}")
-        
-        inp = None
-        out = None
-        
-        if not self.kill_switch:
-            client.run("+voicerecord")
-            # play through the microphone
-            inp = threading.Thread(
-                target=self._quick_play,
-                args=[self.input_player, config.data["vbcable"], file, 1],
-                daemon=True,
-            )
+  def _clear_modules(self, pulse: pulsectl.Pulse):
+    for module in pulse.module_list():
+      try:
+        modargs = parse_pa_modargs(module.argument)
+        if (module.name == "module-virtual-source" and modargs.get("source_name", "") == SOURCE_NAME) \
+                or (module.name == "module-null-sink" and modargs.get("sink_name", "") == SINK_NAME):
+          pulse.module_unload(module.index)
+      except AttributeError:
+        pass
 
-            # play through the speakers
-            out = threading.Thread(
-                target=self._quick_play,
-                args=[self.output_player, config.data["soundoutput"], file, 1],
-                daemon=True,
-            )
-            
-            inp.start()
-            out.start()
-        
-        wait_thread = threading.Thread(
-            target=self.wait_until_done, args=[client, inp, out, length]
-        )
-        wait_thread.start()
-        if block:
-            wait_thread.join()
+  def play(self, filename: str):
+    state.client.run("+voicerecord")
 
-    @property
-    def paused(self) -> bool:
-        return self.stopped if self.stopped else self._paused
+    if sys.platform == "win32":
+      mixer.init(devicename=VBCABLE_NAME)
+    elif sys.platform == "linux":
+      mixer.init(devicename=f"{SINK_NAME} Audio/Sink sink")
 
-    @paused.setter
-    def paused(self, val: bool):
-        self._paused = val
-        self.input_player.set_pause(val)
-        self.output_player.set_pause(val)
+    mixer.music.load(filename)
+    mixer.music.play()
+    while mixer.music.get_busy():  # wait for audio to finish playing
+      if self.kill_switch:
+        mixer.music.stop()
 
-    @property
-    def playing(self) -> bool:
-        return not self.paused
+    if self.auto_disable_voice:
+      state.client.run("-voicerecord")
 
-    @playing.setter
-    def playing(self, val: bool):
-        self.paused = not val
+  def close(self):
+    if sys.platform == "linux":
+      with pulsectl.Pulse("tf2gpt") as pulse:
+        global sink_id
+        global source_id
+        pulse.module_unload(sink_id)
+        pulse.module_unload(source_id)
 
-    def _quick_play(
-        self, player: vlc.MediaPlayer, devicename: str, file: str, volume_mul=1
-    ):
-        device_id, _ = self.get_device(player, devicename)
+  def __enter__(self) -> Self:
+    return self
 
-        def _upd_volume():
-            # multiply volume by volume multiplier
-            # clamp volume between 0-100
-            # round
-            vol = ceil(np.clip(self.volume * volume_mul, 0, 100))
-            player.audio_set_volume(vol)
-            return vol
+  def __exit__(self, exc_type, exc_value, traceback):
+    self.close()
 
-        player.audio_output_device_set(None, device_id)
 
-        media: vlc.Media = self.instance.media_new(file)
-        player.set_media(media)
-
-        _upd_volume()
-        player.play()
+sp: SoundPlayer = None

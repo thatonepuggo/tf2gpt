@@ -1,6 +1,18 @@
-.env
-venv
-.venv
-output.mp3
-app/__pycache__
-app/config.yaml
+# secrets #
+/.env
+/config.yaml
+
+# not used by the app. you can use this dir
+# for any files you want to be ignored.
+/user_secrets/
+
+# venv #
+/venv
+/.venv
+
+# outputs #
+/output.mp3
+/app/_build
+
+# python waste #
+**/__pycache__

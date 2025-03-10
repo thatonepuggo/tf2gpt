@@ -1,46 +1,36 @@
 {% extends "base.html" %}
 {% block head %}
-<script src="{{url_for('static', filename='js/index.js')}}"></script>
+<script src="{{url_for('build.static', filename='js/index.js')}}"></script>
 {% endblock %}
 {% block body %}
-<div class="grid-item grid1">
-    <h1>Send</h1>
+<div class="grid-item">
+    <h1>AI</h1>
     <p>You no longer need to input the prefix before the command in the admin panel!</p>
-    Send AI: <input type="text" id="aicmd"> <button id="sendaicmd">Send</button><br>
-    Send RCON: <input type="text" id="rconcmd"> <button id="sendrconcmd">Send</button><br>
-    <h5 id="info">Info will show up here.</h5>
-    
-    {% if killSwitch %}
-    <input type="checkbox" id="killSwitch" checked>
-    {% else %}
-    <input type="checkbox" id="killSwitch">
-    {% endif %}
-    <span>KILL SWITCH</span>
-    <br>
-    
-    {% if autoDisableVoice %}
-    <input type="checkbox" id="autoDisableVoice" checked>
-    {% else %}
-    <input type="checkbox" id="autoDisableVoice">
-    {% endif %}
-    <span>AUTO DISABLE VOICE</span>
+    <p>send a command to the AI: <input type="text" id="aicmd_text"> <button id="aicmd_send">submit</button></p>
+    <p id="statusline">status will show up here.</p>
+
+    <div>
+        <input type="checkbox" class="pvar" name="kill_switch" id="kill_switch">
+        <label for="kill_switch">KILL SWITCH</label>
+    </div>
+    <div>
+        <input type="checkbox" class="pvar" id="auto_disable_voice">
+        <label for="auto_disable_voice">AUTO DISABLE VOICE</label>
+        <div class="help" title="Should the program automatically run the '-voicerecord' command when a TTS has completed?"></div>
+    </div>
+
+    <p>people connected to the panel: <span id="connected_count">...</span></p>
 </div>
-<div class="grid-item grid2">
-    <h1>Command</h1>
-    <h5 id="refreshTime">
-        {% if refreshTime == 1 %}
-        refreshes every second.
-        {% else %}
-        refreshes every {{refreshTime}} seconds.
-        {% endif %}
-    </h5>
-    <div class="consolebox" id="scroller">
-        <div id="consoleBox"></div>
+<div class="grid-item">
+    <h1>Console</h1>
+    <div id="console">
+        <div id="box"></div>
         <div id="anchor"></div>
     </div>
 </div>
-<div class="grid-item grid3">
-    <h1>Queue Length: <span id="queuelength"></span></h1>
+<div class="grid-item">
+    <h1>Queue</h1>
+    <p>queue length: <span id="queuelength">...</span></p>
     <table id="queue">
         <thead>
             <tr>

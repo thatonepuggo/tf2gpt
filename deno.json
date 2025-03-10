@@ -1,0 +1,15 @@
+{
+  "tasks": {
+    "watch": "deno run --watch=./app/assets/js -A esbuild.js"
+  },
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "deno.ns"
+    ],
+    "strict": true
+  },
+  "imports": {
+    "socket.io-client": "npm:socket.io-client@^4.8.1"
+  }
+}

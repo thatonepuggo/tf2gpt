@@ -1,15 +1,22 @@
 {% extends "base.html" %}
+{% block head %}
+<script src="{{url_for('build.static', filename='js/err.js')}}"></script>
+{% endblock %}
 {% block body %}
-    <div class="grid-item">
-        <h1>Error</h1>
-        <h3>An error occured: <code>{{error}}</code></h3>
-        <p>
-            {% if error == "game_not_running" %}
-                The game is not running.
-            {% else %}
-                Unknown error.
-            {% endif %}
-        </p>
-        <a class="btn" href="{{url_for('home')}}">Retry</a>
-    </div>
+<div class="grid-item">
+    <h1>Error</h1>
+    <h3>An error occured: <code>{{error}}</code></h3>
+    <p class="countdown"></p>
+    <p>
+        {% if error == "game_not_running" %}
+        The game is not running, or the program cannot connect to RCON.
+        {% else %}
+        Unknown error.
+        {% endif %}
+    </p>
+    <p>
+        File an issue at <a href="//github.com/thatonepuggo/tf2gpt/issues">the github</a> if you need help.
+    </p>
+    <button onclick="location.reload();">refresh</button>
+</div>
 {% endblock %}
